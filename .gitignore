@@ -60,3 +60,7 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# Arquivos de Segredos e Chaves de API
+Secrets.xcconfig
+Secrets.swift
