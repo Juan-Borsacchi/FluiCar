@@ -61,6 +61,9 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 
+# DS Store
+.DS_Store
+
 # Arquivos de Segredos e Chaves de API
 Secrets.xcconfig
 Secrets.swift
