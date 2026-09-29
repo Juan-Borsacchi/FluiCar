@@ -11,45 +11,52 @@ import Observation
 @Observable
 class AddVehicleViewModel {
     private let service: any VehicleServiceProtocol
-    
+    private let dataBase: DataService
     // Arrays para guardar as respostas da API
     var brands: [BrandResponse] = []
     var carModels: [ModelFipeResponse] = []
     var years: [YearResponse] = []
+    
     
     // Variáveis que o usuário selecionou na tela
     var selectedBrandCode: String = ""
     var selectedModelCode: String = ""
     var selectedYearCode: String = ""
     
+    var carName: String = ""
+    var carPhoto: Data? = nil
+    var insurance = false
+    var alarm: Date = Date()
+    var frequency: FrequencyType = .none
+    
     var isLoading = false
     
     var fipeInfo: FipeInformationResponse?
     var showPriceAlert = false
     
-    // Injetamos o seu serviço aqui (por padrão, usa a V2 que você criou)
-    init(service: (any VehicleServiceProtocol)? = nil) {
-            self.service = service ?? ParallelumService()
-        }
+    // Injetando o serviço
+    init(service: (any VehicleServiceProtocol)? = nil, dataBase: DataService) {
+        self.service = service ?? ParallelumService()
+        self.dataBase = dataBase
+    }
     
     // MARK: - Funções de Busca
     func fetchBrands() {
         isLoading = true
         Task {
             do {
-                // Na V2, o vehicleType deve ser "cars" em inglês
                 let result = try await service.fetchBrands(vehicleType: "cars")
                 self.brands = result
                 self.isLoading = false
             } catch {
-                print("Erro ao buscar marcas: \(error)")
+                print("Error on fetch brand: \(error)")
                 self.isLoading = false
             }
         }
     }
     
     func fetchModels(brandCode: String) {
-        guard let brandId = Int(brandCode) else { return } // Converte a String para Int
+        guard let brandId = Int(brandCode) else { return }
         isLoading = true
         
         Task {
@@ -59,7 +66,7 @@ class AddVehicleViewModel {
                 self.carModels = result
                 self.isLoading = false
             } catch {
-                print("Erro ao buscar modelos: \(error)")
+                print("Error on fetch car models: \(error)")
                 self.isLoading = false
             }
         }
@@ -75,37 +82,73 @@ class AddVehicleViewModel {
                 let result = try await service.fetchYears(request: request)
                 self.years = result
                 self.isLoading = false
-                print("✅ Sucesso! \(result.count) anos encontrados.")
+                print("Success! \(result.count) years found.")
             } catch {
-                print("Erro ao buscar anos: \(error)")
+                print("Error on fetch years: \(error)")
                 self.isLoading = false
             }
         }
     }
     
     func fetchFipeInformation(brandCode: String, modelCode: String, yearCode: String) {
-            guard let brandId = Int(brandCode), let modelId = Int(modelCode) else { return }
-            
-            isLoading = true
-            
-            Task {
-                do {
-                    let request = FipeInformationRequest(
-                        vehicleType: "cars",
-                        brandId: brandId,
-                        modelId: modelId,
-                        yearId: yearCode
-                    )
-                    
-                    let result = try await service.fetchFipeInformation(request: request)
-                                  
-                    self.fipeInfo = result
-                    self.showPriceAlert = true
-                    self.isLoading = false
-                } catch {
-                    print("Erro ao buscar informações da Fipe: \(error)")
-                    self.isLoading = false
-                }
+        guard let brandId = Int(brandCode), let modelId = Int(modelCode) else { return }
+        
+        isLoading = true
+        
+        Task {
+            do {
+                let request = FipeInformationRequest(
+                    vehicleType: "cars",
+                    brandId: brandId,
+                    modelId: modelId,
+                    yearId: yearCode
+                )
+                
+                let result = try await service.fetchFipeInformation(request: request)
+                
+                self.fipeInfo = result
+                self.showPriceAlert = true
+                self.isLoading = false
+            } catch {
+                print("Error on fetch FIPE informations: \(error)")
+                self.isLoading = false
             }
         }
+    }
+    
+    func save() async {
+        guard let brandId = Int(selectedBrandCode), let modelId = Int(selectedModelCode) else { return }
+        isLoading = true
+        do {
+            // 1. Busca as informações completas da FIPE para garantir o preço exato
+            let request = FipeInformationRequest(
+                vehicleType: "cars",
+                brandId: brandId,
+                modelId: modelId,
+                yearId: selectedYearCode
+            )
+            
+            _ = try await service.fetchFipeInformation(request: request)
+            
+//            let vehicleToSave = Vehicle(
+//                name: carName.isEmpty ? fipeResult.model : carName,
+//                brand: fipeResult.brand,
+//                model: fipeResult.model,
+//                year: fipeResult.modelYear,
+//                price: fipeResult.price,
+//                photoData: carPhoto,
+//                hasInsurance: insurance,
+//                alarm: alarm,
+//                frequency: frequency
+//            )
+//            await dataBase.save(vehicleToSave)
+            print("Data saved")
+            
+            isLoading = false
+        }catch {
+            print("Error ao buscar FIPE para salvar: \(error)")
+            isLoading = false
+
+        }
+    }
 }
