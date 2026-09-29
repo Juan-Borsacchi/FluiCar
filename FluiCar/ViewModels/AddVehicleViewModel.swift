@@ -11,7 +11,7 @@ import Observation
 @Observable
 class AddVehicleViewModel {
     private let service: any VehicleServiceProtocol
-    private let dataBase: DataService
+    private let dataBase: any VehicleRepositoryProtocol
     // Arrays para guardar as respostas da API
     var brands: [BrandResponse] = []
     var carModels: [ModelFipeResponse] = []
@@ -35,10 +35,10 @@ class AddVehicleViewModel {
     var showPriceAlert = false
     
     // Injetando o serviço
-    init(service: (any VehicleServiceProtocol)? = nil, dataBase: DataService) {
-        self.service = service ?? ParallelumService()
-        self.dataBase = dataBase
-    }
+    init(service: (any VehicleServiceProtocol)? = nil, dataBase: any VehicleRepositoryProtocol? = nil) {
+            self.service = service ?? ParallelumService()
+            self.dataBase = dataBase ?? DataService.shared
+        }
     
     // MARK: - Funções de Busca
     func fetchBrands() {

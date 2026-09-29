@@ -3,7 +3,7 @@ import PhotosUI
 
 @MainActor
 struct AddVehicleView: View {
-    @State private var viewModel = AddVehicleViewModel(dataBase: DataService())
+    @State private var viewModel = AddVehicleViewModel()
     @Environment(\.dismiss) private var dismiss
     
     // Variáveis de controle para a Foto

@@ -12,7 +12,7 @@ import SwiftData
 struct FluiCarApp: App {
     var body: some Scene {
         WindowGroup {
-            DatabaseTestView()
+           ContentView()
         }
     }
 }
