@@ -10,9 +10,17 @@ import SwiftData
 
 @main
 struct FluiCarApp: App {
+    @State private var coordinator = CoordinatorCore()
+    
     var body: some Scene {
         WindowGroup {
-           ContentView()
+            /*NavigationStack(path: $coordinator.path) {
+                ContentView()
+                    .navigationDestination(for: AppRoute.self) { route in
+                        switch route {
+                        }
+                    }
+            }*/
         }
     }
 }
