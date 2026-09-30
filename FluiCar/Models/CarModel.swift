@@ -18,8 +18,8 @@ struct Car: Identifiable, Hashable {
     var fipeValue: String
     
     var insurance: Bool?
-    var alarm: Data?
-    var frequency: Bool?
+    var alarm: Date?
+    var frequency: FrequencyType
     
     var tasks: [CarTaskModel] = []
     

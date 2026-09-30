@@ -21,13 +21,13 @@ final class Cars {
     var kilometers: Int
     
     var insurance: Bool?
-    var alarm: Data?
-    var frequency: Bool?
+    var alarm: Date?
+    var frequency: FrequencyType
     
     @Relationship(deleteRule: .cascade, inverse: \CarTask.car)
     var tasks: [CarTask] = []
     
-    init(id: UUID, photo: Data, name: String, brand: String, model: String, year: Int, fuel: String, fipeValue: String, kilometers: Int, insurance: Bool? = nil, alarm: Data? = nil, frequency: Bool? = nil, tasks: [CarTask]) {
+    init(id: UUID, photo: Data, name: String, brand: String, model: String, year: Int, fuel: String, fipeValue: String, kilometers: Int, insurance: Bool? = nil, alarm: Date? = nil, frequency: FrequencyType, tasks: [CarTask]) {
         self.id = id
         self.photo = photo
         self.name = name
