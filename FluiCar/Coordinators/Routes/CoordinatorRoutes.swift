@@ -6,6 +6,11 @@
 //
 
 enum AppRoute: Hashable {
-    case garageList
+    case home
     case addVehicle
+    case editVehicle(Car)
+    case addTask
+    case editTask
+    case task
+    case tutorial
 }
