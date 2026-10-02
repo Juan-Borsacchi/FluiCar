@@ -11,7 +11,7 @@ import Observation
 @Observable
 class TutorialViewModel {
     var tutorial: TutorialModel?
-    var currentPhase: Int = 1
+    var currentPhase: Int = 0
     var showWarning: Bool = false
     var currentWarningText: String = ""
     
