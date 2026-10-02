@@ -35,7 +35,7 @@ struct TaskCard: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .glassEffect(.regular, in: .rect(cornerRadius: 16))
+        .glassEffect(.regular .interactive(), in: .rect(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color.gray.opacity(0.15), lineWidth: 1)
