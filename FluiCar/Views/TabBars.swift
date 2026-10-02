@@ -17,6 +17,8 @@ struct TabBarsView: View {
     @State private var selectedTab: Tabs = .maintenance
     @State private var searchString = ""
     
+    @Environment(CoordinatorCore.self) private var coordinator
+    
     var body: some View {
         TabView(selection: $selectedTab) {
             
@@ -25,8 +27,13 @@ struct TabBarsView: View {
             }
             
             Tab("Tarefas", systemImage: "list.bullet.clipboard.fill", value: .maintenance) {
-                NavigationStack {
-                    MaintenanceView()
+                @Bindable var bindableCoordinator = coordinator
+                NavigationStack(path: $bindableCoordinator.path) {
+                    coordinator.build(.task)
+                    
+                        .navigationDestination(for: AppRoute.self) {route in
+                            coordinator.build(route)
+                        }
                 }
             }
             
@@ -44,4 +51,5 @@ struct TabBarsView: View {
 
 #Preview {
     TabBarsView()
+        .environment(CoordinatorCore())
 }

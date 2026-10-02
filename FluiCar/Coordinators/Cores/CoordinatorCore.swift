@@ -11,6 +11,8 @@ import Observation
 @MainActor
 @Observable
 final class CoordinatorCore: CoordinatorProtocol {
+    
+    
     var path  = NavigationPath()
     
     func push(_ route: AppRoute) {
@@ -25,4 +27,28 @@ final class CoordinatorCore: CoordinatorProtocol {
     func popToRoot() {
         path.removeLast(path.count)
     }
+    
+    @ViewBuilder
+    func build(_ route: AppRoute) -> some View {
+        switch route {
+                case .home:
+                    Text("Tela Home")
+                case .vehicle(let car):
+                        VehicleView(viewModel: VehicleViewModel(car: car))
+                case .addVehicle:
+                        AddVehicleView(viewModel: AddVehicleViewModel())
+                case .editVehicle(let car):
+                        AddVehicleView(viewModel: AddVehicleViewModel(car: car))
+                case .addTask:
+                    Text("Tela Add Task")
+                case .editTask:
+                    Text("Tela Edit Task")
+                case .task:
+                    MaintenanceView()
+                case .tutorial:
+                    Text("Tela Tutorial")
+            
+        }
+    }
+    
 }

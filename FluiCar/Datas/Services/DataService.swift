@@ -28,20 +28,20 @@ final class DataService: VehicleRepositoryProtocol {
             }
         }
     
-    func fetchAll() async throws -> [Car] {
+    func fetchAll() async throws -> [CarModel] {
         let descriptor = FetchDescriptor<Cars>(sortBy: [SortDescriptor(\.name)])
         let carEntities = try modelContext.fetch(descriptor)
         
         return carEntities.map { $0.toCar() }
     }
     
-    func save(_ vehicle: Car) async throws {
+    func save(_ vehicle: CarModel) async throws {
         let newCar = vehicle.toCars()
         modelContext.insert(newCar)
         try modelContext.save()
     }
     
-    func update(_ vehicle: Car) async throws {
+    func update(_ vehicle: CarModel) async throws {
             let vehicleID = vehicle.id
             let predicate = #Predicate<Cars> { $0.id == vehicleID }
             var descriptor = FetchDescriptor<Cars>(predicate: predicate)
@@ -67,7 +67,7 @@ final class DataService: VehicleRepositoryProtocol {
             }
         }
     
-    func delete(_ vehicle: Car) async throws {
+    func delete(_ vehicle: CarModel) async throws {
         let vehicleID = vehicle.id
         let predicate = #Predicate<Cars> { $0.id == vehicleID }
         var descriptor = FetchDescriptor<Cars>(predicate: predicate)
@@ -81,7 +81,7 @@ final class DataService: VehicleRepositoryProtocol {
         }
     }
     
-    func addTask(_ task: CarTaskModel, to vehicle: Car) async throws {
+    func addTask(_ task: CarTaskModel, to vehicle: CarModel) async throws {
         let vehicleID = vehicle.id
         let predicate = #Predicate<Cars> { $0.id == vehicleID }
         var descriptor = FetchDescriptor<Cars>(predicate: predicate)
