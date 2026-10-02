@@ -6,7 +6,7 @@
 //
 import Foundation
 
-struct Car: Identifiable, Hashable {
+struct CarModel: Identifiable, Hashable {
     let id: UUID
     var photo: Data
     var name : String
@@ -33,11 +33,11 @@ struct Car: Identifiable, Hashable {
 }
 
 extension Cars {
-    func toCar() -> Car {
+    func toCar() -> CarModel {
         
         let tasksModels = tasks.map { $0.toTask() }
         
-        return Car(id: id, photo: photo, name: name, brand: brand, model: model, year: year, fuel: fuel, kilometers: String(kilometers), fipeValue: fipeValue, insurance: insurance, alarm: alarm, frequency: frequency, tasks: tasksModels)
+        return CarModel(id: id, photo: photo, name: name, brand: brand, model: model, year: year, fuel: fuel, kilometers: String(kilometers), fipeValue: fipeValue, insurance: insurance, alarm: alarm, frequency: frequency, tasks: tasksModels)
         
     }
 }
