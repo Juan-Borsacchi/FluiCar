@@ -63,7 +63,7 @@ class MaintenanceViewModel {
         }
     }
     
-    func fetchMaintenanceTasks(for cars: [Car]) {
+    func fetchMaintenanceTasks(for cars: [CarModel]) {
         guard !cars.isEmpty else {
             let distantDate = Date.distantFuture
             self.tasks = [
