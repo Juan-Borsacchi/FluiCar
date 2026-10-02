@@ -23,14 +23,14 @@ struct TabBarsView: View {
         @Bindable var bindableCoordinator = coordinator
         
         TabView(selection: $selectedTab) {
-            
+    
             // ABA 1: AUTOMÓVEL
             Tab("Automóvel", systemImage: "car.side.fill", value: .carHome) {
                 NavigationStack(path: $bindableCoordinator.carPath) {
-                    Text("Tela Principal do Carro")
-                        .navigationDestination(for: AppRoute.self) { route in
-                            coordinator.build(route)
-                        }
+                    coordinator.build(.home)
+                            .navigationDestination(for: AppRoute.self) { route in
+                                coordinator.build(route)
+                            }
                 }
             }
             
