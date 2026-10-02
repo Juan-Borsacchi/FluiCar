@@ -22,9 +22,17 @@ struct MaintenanceView: View {
                     .ignoresSafeArea()
                 
                 VStack(alignment: .leading) {
-                    if viewModel.isLoading {
+                    if viewModel.isLoading || !viewModel.hasLoaded {
                         ProgressView()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if !viewModel.hasCars && viewModel.customTasks.isEmpty {
+                        // Estado vazio: nenhum carro cadastrado, então não há manutenção prevista
+                        ContentUnavailableView(
+                            "Nenhuma manutenção prevista",
+                            systemImage: "wrench.and.screwdriver.fill",
+                            description: Text("Cadastre um carro primeiro para ver as manutenções previstas.")
+                        )
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
                         List {
                             // 1. Tarefas Padrão de Manutenção de Todos os Carros Filtradas
@@ -102,6 +110,7 @@ struct MaintenanceView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .disabled(!viewModel.hasCars) // precisa de um carro para criar tarefa
                     
                     Menu {
                         Picker("Filtrar", selection: $selectedFilter) {
@@ -114,8 +123,9 @@ struct MaintenanceView: View {
                     }
                 }
             }
-            .task {
-                await viewModel.loadCarAndTasks()
+            // Recarrega sempre que a tela aparece (ex.: depois de cadastrar um carro na outra aba)
+            .onAppear {
+                Task { await viewModel.loadCarAndTasks() }
             }
             // Sheet exclusiva para cadastrar nova tarefa através do botão +
             .sheet(isPresented: $showAddCustomTaskSheet) {
