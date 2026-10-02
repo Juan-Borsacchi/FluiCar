@@ -14,13 +14,8 @@ struct FluiCarApp: App {
     
     var body: some Scene {
         WindowGroup {
-            /*NavigationStack(path: $coordinator.path) {
-                ContentView()
-                    .navigationDestination(for: AppRoute.self) { route in
-                        switch route {
-                        }
-                    }
-            }*/
+            TabBarsView()
+                .environment(coordinator)
         }
     }
 }

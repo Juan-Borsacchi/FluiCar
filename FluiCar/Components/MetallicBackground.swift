@@ -27,17 +27,17 @@ struct MetallicCardModifier: ViewModifier {
                     
                     AngularGradient(
                         stops: [
-                            .init(color: Color.white.opacity(0.12), location: 0.0),
-                            .init(color: Color.white.opacity(0.20), location: 0.12),
-                            .init(color: Color.white.opacity(0.07), location: 0.22),
-                            .init(color: Color.white.opacity(0.14), location: 0.38),
-                            .init(color: Color.white.opacity(0.07), location: 0.52),
-                            .init(color: Color.white.opacity(0.17), location: 0.65),
-                            .init(color: Color.white.opacity(0.07), location: 0.78),
-                            .init(color: Color.white.opacity(0.12), location: 0.90),
-                            .init(color: Color.white.opacity(0.10), location: 1.0)
+                            .init(color: Color.white.opacity(0.10), location: 0.0),
+                            .init(color: Color.white.opacity(0.18), location: 0.12),
+                            .init(color: Color.white.opacity(0.05), location: 0.22),
+                            .init(color: Color.white.opacity(0.12), location: 0.38),
+                            .init(color: Color.white.opacity(0.05), location: 0.52),
+                            .init(color: Color.white.opacity(0.15), location: 0.65),
+                            .init(color: Color.white.opacity(0.05), location: 0.78),
+                            .init(color: Color.white.opacity(0.10), location: 0.90),
+                            .init(color: Color.white.opacity(0.08), location: 1.0)
                         ],
-                        center: UnitPoint(x: 0.34, y: 0.34)
+                        center: UnitPoint(x: 0.00, y: 0.34)
                     )
                     .opacity(0.58)
                     .blendMode(.plusLighter)

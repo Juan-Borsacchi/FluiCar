@@ -7,9 +7,13 @@
 import SwiftUI
 
 protocol CoordinatorProtocol {
+    associatedtype Destination: View
+    
     var path: NavigationPath { get set }
     
     func push(_ route: AppRoute)
     func pop()
     func popToRoot()
+    
+    func build(_ route: AppRoute) -> Destination
 }
