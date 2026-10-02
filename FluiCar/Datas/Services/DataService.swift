@@ -20,11 +20,20 @@ final class DataService: VehicleRepositoryProtocol {
             do {
                 let schema = Schema([Cars.self, CarTask.self])
                 let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-                
+               
                 self.modelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
                 self.modelContext = modelContainer.mainContext
             } catch {
-                fatalError("Erro crítico ao inicializar o banco de dados: \(error)")
+                // Em vez de crashar a app com fatalError, criamos um contentor em memória temporário como fallback seguro
+                let schema = Schema([Cars.self, CarTask.self])
+                let fallbackConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+                do {
+                    self.modelContainer = try ModelContainer(for: schema, configurations: [fallbackConfig])
+                    self.modelContext = modelContainer.mainContext
+                    print("Aviso: Banco recriado em memória devido a erro de migração: \(error)")
+                } catch {
+                    fatalError("Erro crítico absoluto ao inicializar o ModelContainer: \(error)")
+                }
             }
         }
     
@@ -109,5 +118,6 @@ final class DataService: VehicleRepositoryProtocol {
                 try modelContext.save()
             }
         }
+    
 }
 

@@ -17,10 +17,11 @@ struct TaskCard: View {
             
             Text(title)
                 .font(.system(size: 17, weight: .semibold))
+                .foregroundColor(.primary) // Adapta-se automaticamente (preto no claro, branco no escuro)
                 
             Text("Veículo: \(vehicle)")
                 .font(.system(size: 13))
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary) // Cinzento adaptativo
             
             HStack(spacing: 6) {
                 Circle()
@@ -29,21 +30,22 @@ struct TaskCard: View {
                 
                 Text("Prazo final: \(dueDate)")
                     .font(.system(size: 13))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
             }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white) // O fundo do cartão é branco
-        .cornerRadius(16)
+        .glassEffect(.regular, in: .rect(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.gray.opacity(0.15), lineWidth: 1)
+        )
     }
 }
 
 #Preview {
-    // O ZStack fica apenas no preview para ver o contraste do cartão com o fundo
     ZStack {
-        // A cor de fundo para o teu teste
-        Color(UIColor.systemGray6)
+        Color("Primary")
             .ignoresSafeArea()
         
         TaskCard(title: "Trocar o óleo",

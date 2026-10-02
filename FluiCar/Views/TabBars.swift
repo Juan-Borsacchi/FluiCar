@@ -22,7 +22,7 @@ struct TabBarsView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             
-            Tab("Carro", systemImage: "car.side.fill", value: .car) {
+            Tab("Automóvel", systemImage: "car.side.fill", value: .car) {
                 Text("Tela do Carro (Em Construção)")
             }
             
