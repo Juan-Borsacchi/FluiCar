@@ -16,7 +16,7 @@ struct InformationsCard: View {
             Image(systemName: logo)
                 .font(.footnote)
                 .foregroundStyle(Color.accent)
-                .frame(minWidth: 23, idealWidth: 29, maxWidth: 29,minHeight: 23, idealHeight: 29, maxHeight: .infinity)
+                .frame(minWidth: 29, idealWidth: 29, maxWidth: 29,minHeight: 29, idealHeight: 29, maxHeight: .infinity)
                 
                 .background(Color.gray.opacity(0.2))
                 .clipShape(RoundedRectangle(cornerRadius: 10))

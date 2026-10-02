@@ -10,8 +10,8 @@ import PhotosUI
 @MainActor
 struct AddVehicleView: View {
     @State var viewModel: AddVehicleViewModel
+    @Environment(CoordinatorCore.self) private var coordinator
     @Environment(\.dismiss) private var dismiss
-    
     // Variáveis de controle para a Foto
     @State private var showActionSheet = false
     @State private var showCamera = false
@@ -134,7 +134,7 @@ struct AddVehicleView: View {
         
         .toolbar {
             CustomSheetHeader(
-                onDismiss: { dismiss() },
+                onDismiss: { coordinator.dismissSheet() },
                 onSave: {
                     if let image = uiImage {
                         viewModel.carPhoto = image.jpegData(compressionQuality: 0.8)
