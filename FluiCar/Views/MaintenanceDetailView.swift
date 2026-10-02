@@ -105,7 +105,7 @@ struct MaintenanceDetailView: View {
     
     var body: some View {
         ZStack {
-            Color("Primary")
+            Color("Background")
                 .ignoresSafeArea()
             
             ScrollView(showsIndicators: false) {

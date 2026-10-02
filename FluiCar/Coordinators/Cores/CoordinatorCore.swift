@@ -78,7 +78,7 @@ final class CoordinatorCore: CoordinatorProtocol {
     func build(_ route: AppRoute) -> some View {
         switch route {
                 case .home:
-                    Text("Tela Home")
+                        AutomobileHomeView()
                 case .vehicle(let car):
                         VehicleView(viewModel: VehicleViewModel(car: car))
                 case .addVehicle:

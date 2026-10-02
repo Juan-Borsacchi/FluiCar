@@ -18,7 +18,7 @@ struct MaintenanceView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color("Primary")
+                Color("Background")
                     .ignoresSafeArea()
                 
                 VStack(alignment: .leading) {
