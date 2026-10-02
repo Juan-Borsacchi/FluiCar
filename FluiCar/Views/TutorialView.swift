@@ -9,9 +9,7 @@ import SwiftUI
 
 struct TutorialView: View {
     @State private var viewModel = TutorialViewModel()
-    
-    
-    @Environment(\.dismiss) var dismiss
+    @Environment(CoordinatorCore.self) private var coordinator
     let taskType: TaskType
     
     var body: some View {
@@ -68,8 +66,8 @@ struct TutorialView: View {
                     if viewModel.currentPhase > 0 {
                         viewModel.goBack()
                     } else {
-                        dismiss()
-                    }
+                        coordinator.pop()
+                   }
                 }) {
                     Image(systemName: "chevron.left")
 
@@ -85,11 +83,13 @@ struct TutorialView: View {
 #Preview("Ver e Trocar Água") {
     NavigationStack {
         TutorialView(taskType: .verificarAgua)
+            .environment(CoordinatorCore())
     }
 }
 
 #Preview("Troca de Óleo") {
     NavigationStack {
         TutorialView(taskType: .trocaOleo)
+            .environment(CoordinatorCore())
     }
 }

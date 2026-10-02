@@ -28,14 +28,14 @@ enum TaskType: String, Identifiable, CaseIterable {
                     ],
                     steps: [
                         TutorialStep(
-                            title: "Passo 2: Substituição do filtro e abastecimento",
-                            description: "Você terá que ter acesso a parte de baixo do carro. Você pode usar um macaco automotivo acompanhado de cavaletes de segurança. \n Deite-se embaixo do motor e procure por uma peça redonda (o filtro de óleo) e um parafuso solitário na base do motor (o plugue do cárter). \n Posicione uma bacia embaixo desse parafuso, solte-o com uma chave e deixe o óleo velho escorrer até o fim.",
+                            title: "Passo 1: Esvaziamento do óleo antigo",
+                            description: "Você terá que ter acesso a parte de baixo do carro. Você pode usar um macaco automotivo acompanhado de cavaletes de segurança. \n\n Deite-se embaixo do motor e procure por uma peça redonda (o filtro de óleo) e um parafuso solitário na base do motor (o plugue do cárter). \n\n Posicione uma bacia embaixo desse parafuso, solte-o com uma chave e deixe o óleo velho escorrer até o fim.",
                             imageName: "passo1_oleo",
                             warningMessage: "Aviso: Nunca fique embaixo do carro segurado apenas pelo macaco hidráulico."
                         ),
                         TutorialStep(
-                            title: "Passo 2: Adicionando o fluido",
-                            description: "Assim que óleo antigo terminar de escorrer, desenrosque o filtro de óleo antigo e troque-o por um novo. /n Antes de fechar a parte de baixo, substitua a arruela de vedação antiga por uma nova, recoloque o plugue no cárter e aperte. /n Para finalizar, vá para a parte de cima do carro e abra a tampa do motor. Com a ajuda de um funil, coloque o óleo novo na quantidade exata indicada pelo manual e use a vareta para checar se atingiu o nível ideal.",
+                            title: "Passo 2: Substituição do filtro e abastecimento",
+                            description: "Assim que óleo antigo terminar de escorrer, desenrosque o filtro de óleo antigo e troque-o por um novo. \n\n Antes de fechar a parte de baixo, substitua a arruela de vedação antiga por uma nova, recoloque o plugue no cárter e aperte. \n\n Para finalizar, vá para a parte de cima do carro e abra a tampa do motor. Com a ajuda de um funil, coloque o óleo novo na quantidade exata indicada pelo manual e use a vareta para checar se atingiu o nível ideal.",
                             imageName: "troca_oleo",
                             warningMessage: "Aviso: Lubrifique a borracha do filtro novo com um pouco de óleo antes de rosquear e aperte-o apenas com a força das mãos."
                         )

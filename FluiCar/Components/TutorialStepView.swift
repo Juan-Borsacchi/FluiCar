@@ -19,44 +19,69 @@ struct TutorialStepView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            
-            ProgressView(value: progress) {
-                Text("Etapa \(currentIndex + 1) de \(totalSteps)")
+        GeometryReader { geometry in
+            VStack(spacing: 16) {
+                VStack (alignment: .leading){
+                    ProgressView(value: progress) {
+                        Text("Etapa \(currentIndex + 1) de \(totalSteps)")
+                    }
+                    .animation(.default, value: currentIndex)
+                    
+                    HStack (alignment: .firstTextBaseline) {
+                        Image(systemName: "circle.fill")
+                            .font(.system(size: 8))
+                            .foregroundColor(.accentColor)
+                            .alignmentGuide(.firstTextBaseline) { context in
+                                context[.firstTextBaseline] - (context.height * -0.2)
+                            }
+                        
+                        Text(step.title)
+                            .font(.title3)
+                            .bold()
+                    }
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 8)
+                
+                VStack (spacing: 10) {
+                    Image(step.imageName)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geometry.size.width - 32, height: geometry.size.height * 0.28)
+                        .clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                    
+                    ScrollView {
+                        Text(step.description)
+                            .font(.body)
+                            .foregroundColor(.primary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(8)
+                .padding(.bottom, 16)
+                .background(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 28))
+                
+                Spacer()
+                
+                let isLastStep = currentIndex == (totalSteps - 1)
+                
+                Button(action: onNext) {
+                    Text(isLastStep ? "Finalizar Tutorial" : "Avançar Etapa")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .metallicBackground()
+                        .clipShape(.capsule)
+                }
+                .padding(.horizontal, 8)
+                .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? 0 : 8)
             }
-            .animation(.default, value: currentIndex)
-            
-            Text(step.title)
-                .font(.title3)
-                .bold()
-            
-            Rectangle()
-                .fill(Color.gray.opacity(0.2))
-                .frame(height: 180)
-                .cornerRadius(12)
-                .overlay(Image(systemName: step.imageName).font(.largeTitle).foregroundColor(.gray))
-            
-            ScrollView {
-                Text(step.description)
-                    .font(.subheadline)
-                    .foregroundColor(.primary)
-            }
-            
-            Spacer()
-            
-            let isLastStep = currentIndex == (totalSteps - 1)
-            
-            Button(action: onNext) {
-                Text(isLastStep ? "Finalizar Tutorial" : "Avançar Etapa")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .metallicBackground()
-                    .clipShape(.capsule)
-            }
+            .padding(.top)
+            .padding(.horizontal, 8)
         }
-        .padding(.top)
-        .padding(.horizontal)
     }
 }
