@@ -82,6 +82,7 @@ struct TutorialStepView: View {
             }
             .padding(.top)
             .padding(.horizontal, 8)
+            .toolbar(.hidden, for: .tabBar)
         }
     }
 }
