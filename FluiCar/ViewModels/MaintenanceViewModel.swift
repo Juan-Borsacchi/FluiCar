@@ -12,6 +12,8 @@ class MaintenanceViewModel {
     var tasks: [TaskItemModel] = []
     var customTasks: [CustomTaskModel] = []
     var isLoading: Bool = false
+    var hasLoaded: Bool = false // evita mostrar o estado vazio antes da primeira busca terminar
+    var hasCars: Bool = false   // true quando existe ao menos um carro cadastrado
     
     struct TaskItemModel: Identifiable {
         let id = UUID()
@@ -48,31 +50,24 @@ class MaintenanceViewModel {
     
     // MARK: - Carregamento de Veículos e Tarefas Automáticas para Todos os Carros
     func loadCarAndTasks() async {
-        isLoading = true
+        // O spinner só aparece na primeira carga, para a lista não piscar a cada recarga
+        if !hasLoaded { isLoading = true }
         do {
             let cars = try await DataService.shared.fetchAll()
-            
-            if cars.isEmpty {
-                fetchMaintenanceTasks(for: [])
-            } else {
-                fetchMaintenanceTasks(for: cars)
-            }
+            hasCars = !cars.isEmpty
+            fetchMaintenanceTasks(for: cars)
         } catch {
             print("Erro ao carregar veículos: \(error)")
+            hasCars = false
             fetchMaintenanceTasks(for: [])
         }
+        hasLoaded = true
     }
     
     func fetchMaintenanceTasks(for cars: [CarModel]) {
+        // Sem carros cadastrados não há manutenção prevista (a tela mostra o estado vazio)
         guard !cars.isEmpty else {
-            let distantDate = Date.distantFuture
-            self.tasks = [
-                TaskItemModel(title: "Troca de óleo", vehicle: "Meu automóvel", dueDate: "Cadastre um automóvel", rawDate: distantDate),
-                TaskItemModel(title: "Água do radiador", vehicle: "Meu automóvel", dueDate: "Cadastre um automóvel", rawDate: distantDate),
-                TaskItemModel(title: "Pastilhas do freio", vehicle: "Meu automóvel", dueDate: "Cadastre um automóvel", rawDate: distantDate),
-                TaskItemModel(title: "Bateria", vehicle: "Meu automóvel", dueDate: "Cadastre um automóvel", rawDate: distantDate),
-                TaskItemModel(title: "Pneus", vehicle: "Meu automóvel", dueDate: "Cadastre um automóvel", rawDate: distantDate)
-            ]
+            self.tasks = []
             self.isLoading = false
             return
         }
