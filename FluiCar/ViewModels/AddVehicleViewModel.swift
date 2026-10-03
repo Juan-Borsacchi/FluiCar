@@ -38,7 +38,6 @@ class AddVehicleViewModel {
    
     
     var carName: String = ""
-    var carPhoto: Data? = nil
     var insurance = false
     var alarm: Date = Date()
     var frequency: FrequencyType = .none
@@ -47,9 +46,15 @@ class AddVehicleViewModel {
     
     var fipeInfo: FipeInformationResponse?
     var showPriceAlert = false
-    var preLoadedUIImage: UIImage? = nil
-    
-    // Injetando o serviço
+    var carUIImage: UIImage? = nil {
+            didSet {
+                if carUIImage == nil {
+                    self.carPhotoData = nil
+                }
+            }
+        }
+        
+        private var carPhotoData: Data? = nil
     init(car: CarModel? = nil, service: (any VehicleServiceProtocol)? = nil, dataBase: any VehicleRepositoryProtocol? = nil) {
         self.service = service ?? ParallelumService()
         self.dataBase = dataBase ?? DataService.shared
@@ -60,7 +65,7 @@ class AddVehicleViewModel {
             self.insurance = car.insurance ?? false
             self.alarm = car.alarm ?? Date()
             self.frequency = car.frequency
-            self.carPhoto = car.photo
+            self._carPhotoData = car.photo
             
             let numbersOnly = car.kilometers.filter { $0.isNumber }
             if let number = Int(numbersOnly) {
@@ -72,7 +77,8 @@ class AddVehicleViewModel {
                 }
             }
             if let loadedImage = UIImage(data: car.photo){
-                self.preLoadedUIImage = loadedImage
+                self.carUIImage = loadedImage
+                self.carPhotoData = car.photo
             }
         }
     }
@@ -157,12 +163,12 @@ class AddVehicleViewModel {
         isLoading = true
             do {
                 let cleanKilometers = carKilometers.filter { $0.isNumber }
-
+                let photoToSave = carUIImage?.jpegData(compressionQuality: 0.8) ?? Data()
                 if let existingCar = carToEdit {
                     
                     var updatedCar = existingCar
                     updatedCar.name = carName
-                    updatedCar.photo = carPhoto ?? existingCar.photo
+                    updatedCar.photo = photoToSave
                     updatedCar.kilometers = cleanKilometers
                     updatedCar.insurance = insurance
                     updatedCar.alarm = alarm
@@ -202,7 +208,7 @@ class AddVehicleViewModel {
                     
                     let vehicleToSave = CarModel(
                         id: UUID(),
-                        photo: carPhoto ?? Data(),
+                        photo: carPhotoData ?? Data(),
                         name: carName.isEmpty ? fipeResult.model : carName,
                         brand: fipeResult.brand,
                         model: fipeResult.model,
@@ -277,4 +283,11 @@ class AddVehicleViewModel {
                 selectedYearCode = String(savedYear.code)
             }
         }
+    func onAppear() async {
+        if carToEdit != nil {
+            await loadEditData()
+        } else if brands.isEmpty {
+            fetchBrands()
+        }
+    }
 }

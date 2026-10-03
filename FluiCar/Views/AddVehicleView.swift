@@ -11,12 +11,10 @@ import PhotosUI
 struct AddVehicleView: View {
     @State var viewModel: AddVehicleViewModel
     @Environment(CoordinatorCore.self) private var coordinator
-    @Environment(\.dismiss) private var dismiss
     // Variáveis de controle para a Foto
     @State private var showActionSheet = false
     @State private var showCamera = false
     @State private var showGallery = false
-    @State private var uiImage: UIImage? = nil
     @State private var showRemovePhotoAlert = false
     @State private var showSuccessAlert = false
     @State private var searchText: String = ""
@@ -27,7 +25,7 @@ struct AddVehicleView: View {
                 HStack {
                     Spacer()
                     Button(action: { showActionSheet = true }) {
-                        if let uiImage = uiImage {
+                        if let uiImage = viewModel.carUIImage {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
@@ -43,7 +41,7 @@ struct AddVehicleView: View {
                                 .alert("Remover Foto", isPresented: $showRemovePhotoAlert) {
                                     Button("Remover", role: .destructive) {
                                         withAnimation {
-                                            self.uiImage = nil
+                                            viewModel.carUIImage = nil
                                         }
                                     }
                                     Button("Cancelar", role: .cancel) { }
@@ -122,11 +120,6 @@ struct AddVehicleView: View {
                 }
             }
         }
-        .onAppear{
-            if let preLoadedUIImage = viewModel.preLoadedUIImage {
-                self.uiImage = preLoadedUIImage
-            }
-        }
         .scrollDismissesKeyboard(.interactively)
         
         .navigationTitle(viewModel.carToEdit != nil ? "Editar Automóvel" : "Novo Automóvel")
@@ -136,9 +129,6 @@ struct AddVehicleView: View {
             CustomSheetHeader(
                 onDismiss: { coordinator.dismissSheet() },
                 onSave: {
-                    if let image = uiImage {
-                        viewModel.carPhoto = image.jpegData(compressionQuality: 0.8)
-                    }
                     Task {
                         await viewModel.save()
                         showSuccessAlert = true
@@ -157,12 +147,7 @@ struct AddVehicleView: View {
             }
         }
         .task {
-            if viewModel.carToEdit != nil {
-                await viewModel.loadEditData()
-            } else if viewModel.brands.isEmpty {
-                
-                viewModel.fetchBrands()
-            }
+            await viewModel.onAppear()
         }
         .onChange(of: viewModel.selectedBrandCode) { oldValue, newValue in
             viewModel.selectedModelCode = ""
@@ -187,14 +172,14 @@ struct AddVehicleView: View {
             Button("Cancelar", role: .cancel) { }
         }
         .sheet(isPresented: $showCamera) {
-            ImagePicker(selectedImage: $uiImage, sourceType: .camera)
+            ImagePicker(selectedImage: $viewModel.carUIImage, sourceType: .camera)
         }
         .sheet(isPresented: $showGallery) {
-            GalleryPicker(selectedImage: $uiImage)
+            GalleryPicker(selectedImage: $viewModel.carUIImage)
         }
         .alert(viewModel.carToEdit != nil ? "Automóvel Atualizado" : "Automóvel Salvo", isPresented: $showSuccessAlert) {
             Button("OK") {
-                dismiss()
+                coordinator.dismissSheet()
             }
         } message: {
             Text(viewModel.carToEdit != nil ? "As informações do seu Automóvel foram atualizadas." : "O Automóvel foi cadastrado com sucesso!")
@@ -202,29 +187,29 @@ struct AddVehicleView: View {
     }
 }
 
-#Preview("Modo Criação") {
-    NavigationStack {
-        AddVehicleView(viewModel: AddVehicleViewModel())
-    }
-}
-
-#Preview("Modo Edição") {
-    let mockCar = CarModel(
-        id: UUID(),
-        photo: Data(),
-        name: "Batmóvel",
-        brand: "Ford",
-        model: "Mustang",
-        year: 1969,
-        fuel: "Gasolina",
-        kilometers: "15000",
-        fipeValue: "350000.00",
-        insurance: true,
-        alarm: Date(),
-        frequency: .annual
-    )
-    
-   NavigationStack {
-        AddVehicleView(viewModel: AddVehicleViewModel(car: mockCar))
-    }
-}
+//#Preview("Modo Criação") {
+//    NavigationStack {
+//        AddVehicleView(viewModel: AddVehicleViewModel())
+//    }
+//}
+//
+//#Preview("Modo Edição") {
+//    let mockCar = CarModel(
+//        id: UUID(),
+//        photo: Data(),
+//        name: "Batmóvel",
+//        brand: "Ford",
+//        model: "Mustang",
+//        year: 1969,
+//        fuel: "Gasolina",
+//        kilometers: "15000",
+//        fipeValue: "350000.00",
+//        insurance: true,
+//        alarm: Date(),
+//        frequency: .annual
+//    )
+//    
+//   NavigationStack {
+//        AddVehicleView(viewModel: AddVehicleViewModel(car: mockCar))
+//    }
+//}

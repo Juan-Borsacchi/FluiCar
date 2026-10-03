@@ -15,13 +15,7 @@ struct CarTaskModel: Identifiable, Hashable {
     var endDate: Date?
     var frequency: String?
     
-    func toTasks() -> CarTask {
-        return CarTask(id: id, title: title, textDescription: textDescription, startDate: startDate, endDate: endDate, frequence: frequency)
-    }
+    
 }
 
-extension CarTask {
-    func toTask() -> CarTaskModel {
-        return CarTaskModel(id: id, title: title, textDescription: textDescription, startDate: startDate, endDate: endDate, frequency: frequency)
-    }
-}
+
