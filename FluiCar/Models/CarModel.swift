@@ -23,21 +23,7 @@ struct CarModel: Identifiable, Hashable {
     
     var tasks: [CarTaskModel] = []
     
-    func toCars() -> Cars{
-        
-        let tasksEntities = tasks.map { $0.toTasks() }
-        
-        return Cars(id: id, photo: photo, name: name, brand: brand, model: model, year: year, fuel: fuel, fipeValue: fipeValue, kilometers: Int(kilometers) ?? 0, insurance: insurance, alarm: alarm, frequency: frequency, tasks: tasksEntities)
-    }
+   
     
 }
 
-extension Cars {
-    func toCar() -> CarModel {
-        
-        let tasksModels = tasks.map { $0.toTask() }
-        
-        return CarModel(id: id, photo: photo, name: name, brand: brand, model: model, year: year, fuel: fuel, kilometers: String(kilometers), fipeValue: fipeValue, insurance: insurance, alarm: alarm, frequency: frequency, tasks: tasksModels)
-        
-    }
-}
