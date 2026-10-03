@@ -73,6 +73,7 @@ struct TutorialIntroView: View {
             .padding(.top)
             .background(Color.background
                 .ignoresSafeArea())
+            .toolbar(.hidden, for: .tabBar)
         }
     }
 }

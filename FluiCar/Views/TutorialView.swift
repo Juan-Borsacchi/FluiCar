@@ -75,21 +75,26 @@ struct TutorialView: View {
             }
         }
         .onAppear {
-            viewModel.loadTutorial(for: taskType)
+            viewModel.prepareTutorial(for: taskType)
+        }
+        .onChange(of: viewModel.didFinish) { _, didFinish in
+            if didFinish {
+                coordinator.pop()
+            }
         }
     }
 }
 
 #Preview("Ver e Trocar Água") {
     NavigationStack {
-        TutorialView(taskType: .verificarAgua)
+        TutorialView(taskType: .waterCheck)
             .environment(CoordinatorCore())
     }
 }
 
 #Preview("Troca de Óleo") {
     NavigationStack {
-        TutorialView(taskType: .trocaOleo)
+        TutorialView(taskType: .oilChange)
             .environment(CoordinatorCore())
     }
 }

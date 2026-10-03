@@ -41,11 +41,11 @@ final class DataService: VehicleRepositoryProtocol {
         let descriptor = FetchDescriptor<Cars>(sortBy: [SortDescriptor(\.name)])
         let carEntities = try modelContext.fetch(descriptor)
         
-        return carEntities.map { $0.toCar() }
+        return carEntities.map { $0.toCarModel() }
     }
     
     func save(_ vehicle: CarModel) async throws {
-        let newCar = vehicle.toCars()
+        let newCar = vehicle.toEntity()
         modelContext.insert(newCar)
         try modelContext.save()
     }
@@ -99,7 +99,7 @@ final class DataService: VehicleRepositoryProtocol {
         let fetchedEntities = try modelContext.fetch(descriptor)
         
         if let existingCar = fetchedEntities.first {
-            let newTask = task.toTasks()
+            let newTask = task.toEntity()
             existingCar.tasks.append(newTask)
             try modelContext.save()
         }
@@ -119,5 +119,77 @@ final class DataService: VehicleRepositoryProtocol {
             }
         }
     
+    
 }
+
+extension Cars {
+    func toCarModel() -> CarModel {
+        let tasksModels = self.tasks.map { $0.toCarTaskModel() }
+        
+        return CarModel(
+            id: self.id,
+            photo: self.photo,
+            name: self.name,
+            brand: self.brand,
+            model: self.model,
+            year: self.year,
+            fuel: self.fuel,
+            kilometers: String(self.kilometers),
+            fipeValue: self.fipeValue,
+            insurance: self.insurance,
+            alarm: self.alarm,
+            frequency: self.frequency,
+            tasks: tasksModels
+        )
+    }
+}
+
+extension CarModel {
+    func toEntity() -> Cars {
+        let tasksEntities = self.tasks.map { $0.toEntity() }
+        
+        return Cars(
+            id: self.id,
+            photo: self.photo,
+            name: self.name,
+            brand: self.brand,
+            model: self.model,
+            year: self.year,
+            fuel: self.fuel,
+            fipeValue: self.fipeValue,
+            kilometers: Int(self.kilometers) ?? 0,
+            insurance: self.insurance,
+            alarm: self.alarm,
+            frequency: self.frequency,
+            tasks: tasksEntities
+        )
+    }
+}
+
+extension CarTask {
+    func toCarTaskModel() -> CarTaskModel {
+        return CarTaskModel(
+            id: self.id,
+            title: self.title,
+            textDescription: self.textDescription,
+            startDate: self.startDate,
+            endDate: self.endDate,
+            frequency: self.frequency
+        )
+    }
+}
+
+extension CarTaskModel {
+    func toEntity() -> CarTask {
+        return CarTask(
+            id: self.id,
+            title: self.title,
+            textDescription: self.textDescription,
+            startDate: self.startDate,
+            endDate: self.endDate,
+            frequence: self.frequency
+        )
+    }
+}
+
 
