@@ -9,25 +9,15 @@ import PhotosUI
 
 @MainActor
 struct AddVehicleView: View {
-    @State private var viewModel: AddVehicleViewModel
-    @Environment(\.dismiss) private var dismiss
-    
+    @State var viewModel: AddVehicleViewModel
+    @Environment(CoordinatorCore.self) private var coordinator
     // Variáveis de controle para a Foto
     @State private var showActionSheet = false
     @State private var showCamera = false
     @State private var showGallery = false
-    @State private var uiImage: UIImage? = nil
     @State private var showRemovePhotoAlert = false
     @State private var showSuccessAlert = false
-    
-    init(carToEdit: Car? = nil) {
-        _viewModel = State(wrappedValue: AddVehicleViewModel(car: carToEdit))
-        if let photoData = carToEdit?.photo, let loadedImage = UIImage(data: photoData) {
-            _uiImage = State(initialValue: loadedImage)
-        } else {
-            _uiImage = State(initialValue: nil)
-        }
-    }
+    @State private var searchText: String = ""
     
     var body: some View {
         Form {
@@ -35,7 +25,7 @@ struct AddVehicleView: View {
                 HStack {
                     Spacer()
                     Button(action: { showActionSheet = true }) {
-                        if let uiImage = uiImage {
+                        if let uiImage = viewModel.carUIImage {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
@@ -51,7 +41,7 @@ struct AddVehicleView: View {
                                 .alert("Remover Foto", isPresented: $showRemovePhotoAlert) {
                                     Button("Remover", role: .destructive) {
                                         withAnimation {
-                                            self.uiImage = nil
+                                            viewModel.carUIImage = nil
                                         }
                                     }
                                     Button("Cancelar", role: .cancel) { }
@@ -61,7 +51,7 @@ struct AddVehicleView: View {
                         } else {
                             Image(systemName: "photo.badge.plus")
                                 .font(.system(size: 40))
-                                .foregroundStyle(Color.accentColor.opacity(0.7))
+                                .foregroundStyle(Color.accentColor)
                                 .frame(minWidth: 120, idealWidth: 166, maxWidth: 166, minHeight: 120, idealHeight: 166, maxHeight: 166)
                                 .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 30))
                         }
@@ -73,65 +63,44 @@ struct AddVehicleView: View {
             .padding(.bottom)
             
             Section {
-                if let car = viewModel.carToEdit, !viewModel.isChangingFipe {
-                    Picker("Selecione uma marca", selection: $viewModel.selectedBrandCode) {
-                        Text("\(car.brand)").tag("")
-                        ForEach(viewModel.brands, id: \.code) { brand in
-                            Text(brand.name).tag(String(brand.code))
-                        }
-                    }
-                    
-                    Picker("Selecione um modelo", selection: $viewModel.selectedModelCode) {
-                        Text("\(car.model)").tag("")
-                        ForEach(viewModel.carModels, id: \.code) { model in
-                            Text(model.name).tag(String(model.code))
-                        }
-                    }
-                    .disabled(viewModel.carModels.isEmpty)
-                    
-                    Picker("Selecione o ano", selection: $viewModel.selectedYearCode) {
-                        Text("\(car.year.description)").tag("")
-                        ForEach(viewModel.years, id: \.code) { year in
-                            Text(year.name).tag(String(year.code))
-                        }
-                    }
-                    .disabled(viewModel.years.isEmpty)
-                    
-                } else {
-                    Picker("Selecione uma marca", selection: $viewModel.selectedBrandCode) {
-                        Text("Marca").tag("")
-                        ForEach(viewModel.brands, id: \.code) { brand in
-                            Text(brand.name).tag(String(brand.code))
-                        }
-                    }
-                    
-                    Picker("Selecione um modelo", selection: $viewModel.selectedModelCode) {
-                        Text("Modelo").tag("")
-                        ForEach(viewModel.carModels, id: \.code) { model in
-                            Text(model.name).tag(String(model.code))
-                        }
-                    }
-                    .disabled(viewModel.carModels.isEmpty)
-                    
-                    Picker("Selecione o ano", selection: $viewModel.selectedYearCode) {
-                        Text("Ano").tag("")
-                        ForEach(viewModel.years, id: \.code) { year in
-                            Text(year.name).tag(String(year.code))
-                        }
-                    }
-                    .disabled(viewModel.years.isEmpty)
-                    
-                }
+                SearchablePicker(
+                    title: "Marca",
+                    selection: $viewModel.selectedBrandCode,
+                    items: viewModel.brands.map { (String($0.code), $0.name) },
+                    fallbackName: viewModel.carToEdit?.brand
+                )
+                
+                SearchablePicker(
+                    title: "Modelo",
+                    selection: $viewModel.selectedModelCode,
+                    items: viewModel.carModels.map { (String($0.code), $0.name) },
+                    fallbackName: viewModel.carToEdit?.model
+                )
+                .disabled(viewModel.carModels.isEmpty && viewModel.carToEdit == nil)
+                
+                SearchablePicker(
+                    title: "Ano",
+                    selection: $viewModel.selectedYearCode,
+                    items: viewModel.years.map {
+                        (String($0.code), viewModel.formatPickerYear($0.name))
+                    },
+                    fallbackName: viewModel.carToEdit != nil ? viewModel.formatPickerYear(viewModel.carToEdit!.year.description) : nil
+                )
+                .disabled(viewModel.years.isEmpty && viewModel.carToEdit == nil)
+                
             } footer: {
-                Text("• Voce consegue acessar o modelo e o ano do seu veiculo na parte traseira dele ou no manual do carro.")
+                Text("• Você consegue acessar o modelo e o ano do seu veículo na parte traseira dele ou no manual do carro.")
+                    .padding(.bottom)
             }
             
-            Section(header: Text("Nome do Carro").textCase(.none).font(.subheadline).bold()){
-                TextField("Digite aqui um nome para o seu carro", text: $viewModel.carName)
+            Section(header: Text("Nome do Automóvel").textCase(.none).font(.subheadline).bold()){
+                TextField("Digite o nome do seu Automóvel", text: $viewModel.carName)
             }
+            
             
             Section(header: Text("Quilometragem").textCase(.none).font(.subheadline).bold()) {
                 TextField("Ex: 15.000 km", text: $viewModel.carKilometers)
+                    .disabled(viewModel.selectedYearCode.contains("32000"))
                     .keyboardType(.numberPad)
                     .onChange(of: viewModel.carKilometers) { oldValue, newValue in
                         viewModel.formatKilometers(oldValue: oldValue, newValue: newValue)
@@ -153,16 +122,13 @@ struct AddVehicleView: View {
         }
         .scrollDismissesKeyboard(.interactively)
         
-        .navigationTitle(viewModel.carToEdit != nil ? "Editar Veículo" : "Novo Veículo")
+        .navigationTitle(viewModel.carToEdit != nil ? "Editar Automóvel" : "Novo Automóvel")
         .navigationBarTitleDisplayMode(.inline)
         
         .toolbar {
             CustomSheetHeader(
-                onDismiss: { dismiss() },
+                onDismiss: { coordinator.dismissSheet() },
                 onSave: {
-                    if let image = uiImage {
-                        viewModel.carPhoto = image.jpegData(compressionQuality: 0.8)
-                    }
                     Task {
                         await viewModel.save()
                         showSuccessAlert = true
@@ -181,9 +147,7 @@ struct AddVehicleView: View {
             }
         }
         .task {
-            if viewModel.brands.isEmpty {
-                viewModel.fetchBrands()
-            }
+            await viewModel.onAppear()
         }
         .onChange(of: viewModel.selectedBrandCode) { oldValue, newValue in
             viewModel.selectedModelCode = ""
@@ -208,44 +172,44 @@ struct AddVehicleView: View {
             Button("Cancelar", role: .cancel) { }
         }
         .sheet(isPresented: $showCamera) {
-            ImagePicker(selectedImage: $uiImage, sourceType: .camera)
+            ImagePicker(selectedImage: $viewModel.carUIImage, sourceType: .camera)
         }
         .sheet(isPresented: $showGallery) {
-            GalleryPicker(selectedImage: $uiImage)
+            GalleryPicker(selectedImage: $viewModel.carUIImage)
         }
-        .alert(viewModel.carToEdit != nil ? "Veículo Atualizado" : "Veículo Salvo", isPresented: $showSuccessAlert) {
+        .alert(viewModel.carToEdit != nil ? "Automóvel Atualizado" : "Automóvel Salvo", isPresented: $showSuccessAlert) {
             Button("OK") {
-                dismiss()
+                coordinator.dismissSheet()
             }
         } message: {
-            Text(viewModel.carToEdit != nil ? "As informações do seu veículo foram atualizadas." : "O veículo foi cadastrado com sucesso!")
+            Text(viewModel.carToEdit != nil ? "As informações do seu Automóvel foram atualizadas." : "O Automóvel foi cadastrado com sucesso!")
         }
     }
 }
 
-#Preview("Modo Criação") {
-    NavigationStack {
-        AddVehicleView()
-    }
-}
-
-#Preview("Modo Edição") {
-    let mockCar = Car(
-        id: UUID(),
-        photo: Data(),
-        name: "Batmóvel",
-        brand: "Ford",
-        model: "Mustang",
-        year: 1969,
-        fuel: "Gasolina",
-        kilometers: "15000",
-        fipeValue: "350000.00",
-        insurance: true,
-        alarm: Date(),
-        frequency: .annual
-    )
-    
-   NavigationStack {
-        AddVehicleView(carToEdit: mockCar)
-    }
-}
+//#Preview("Modo Criação") {
+//    NavigationStack {
+//        AddVehicleView(viewModel: AddVehicleViewModel())
+//    }
+//}
+//
+//#Preview("Modo Edição") {
+//    let mockCar = CarModel(
+//        id: UUID(),
+//        photo: Data(),
+//        name: "Batmóvel",
+//        brand: "Ford",
+//        model: "Mustang",
+//        year: 1969,
+//        fuel: "Gasolina",
+//        kilometers: "15000",
+//        fipeValue: "350000.00",
+//        insurance: true,
+//        alarm: Date(),
+//        frequency: .annual
+//    )
+//    
+//   NavigationStack {
+//        AddVehicleView(viewModel: AddVehicleViewModel(car: mockCar))
+//    }
+//}

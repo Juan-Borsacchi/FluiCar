@@ -12,7 +12,7 @@ import Observation
 class AddVehicleViewModel {
     private let service: any VehicleServiceProtocol
     private let dataBase: any VehicleRepositoryProtocol
-    var carToEdit: Car?
+    var carToEdit: CarModel?
     var isChangingFipe: Bool = false
     // Arrays para guardar as respostas da API
     var brands: [BrandResponse] = []
@@ -23,14 +23,21 @@ class AddVehicleViewModel {
     // Variáveis que o usuário selecionou na tela
     var selectedBrandCode: String = ""
     var selectedModelCode: String = ""
-    var selectedYearCode: String = ""
+    var selectedYearCode: String = "" {
+        didSet {
+            if selectedYearCode.contains("32000") {
+                carKilometers = "0 km"
+            } else if carKilometers == "0 km"{
+                carKilometers = ""
+            }
+        }
+    }
     
     var carKilometers: String = ""
    
    
     
     var carName: String = ""
-    var carPhoto: Data? = nil
     var insurance = false
     var alarm: Date = Date()
     var frequency: FrequencyType = .none
@@ -39,9 +46,16 @@ class AddVehicleViewModel {
     
     var fipeInfo: FipeInformationResponse?
     var showPriceAlert = false
-    
-    // Injetando o serviço
-    init(car: Car? = nil, service: (any VehicleServiceProtocol)? = nil, dataBase: any VehicleRepositoryProtocol? = nil) {
+    var carUIImage: UIImage? = nil {
+            didSet {
+                if carUIImage == nil {
+                    self.carPhotoData = nil
+                }
+            }
+        }
+        
+        private var carPhotoData: Data? = nil
+    init(car: CarModel? = nil, service: (any VehicleServiceProtocol)? = nil, dataBase: any VehicleRepositoryProtocol? = nil) {
         self.service = service ?? ParallelumService()
         self.dataBase = dataBase ?? DataService.shared
         self.carToEdit = car
@@ -51,7 +65,7 @@ class AddVehicleViewModel {
             self.insurance = car.insurance ?? false
             self.alarm = car.alarm ?? Date()
             self.frequency = car.frequency
-            self.carPhoto = car.photo
+            self._carPhotoData = car.photo
             
             let numbersOnly = car.kilometers.filter { $0.isNumber }
             if let number = Int(numbersOnly) {
@@ -61,6 +75,10 @@ class AddVehicleViewModel {
                 if let formattedNumber = formatter.string(from: NSNumber(value: number)) {
                     self.carKilometers = "\(formattedNumber) km"
                 }
+            }
+            if let loadedImage = UIImage(data: car.photo){
+                self.carUIImage = loadedImage
+                self.carPhotoData = car.photo
             }
         }
     }
@@ -143,16 +161,14 @@ class AddVehicleViewModel {
     
     func save() async {
         isLoading = true
-        
-            
             do {
                 let cleanKilometers = carKilometers.filter { $0.isNumber }
-
+                let photoToSave = carUIImage?.jpegData(compressionQuality: 0.8) ?? Data()
                 if let existingCar = carToEdit {
                     
                     var updatedCar = existingCar
                     updatedCar.name = carName
-                    updatedCar.photo = carPhoto ?? existingCar.photo
+                    updatedCar.photo = photoToSave
                     updatedCar.kilometers = cleanKilometers
                     updatedCar.insurance = insurance
                     updatedCar.alarm = alarm
@@ -190,9 +206,9 @@ class AddVehicleViewModel {
                     let fipeResult = try await service.fetchFipeInformation(request: request)
                     
                     
-                    let vehicleToSave = Car(
+                    let vehicleToSave = CarModel(
                         id: UUID(),
-                        photo: carPhoto ?? Data(),
+                        photo: carPhotoData ?? Data(),
                         name: carName.isEmpty ? fipeResult.model : carName,
                         brand: fipeResult.brand,
                         model: fipeResult.model,
@@ -242,4 +258,36 @@ class AddVehicleViewModel {
                 self.carKilometers = ""
             }
         }
+    
+    func formatPickerYear(_ yearName: String) -> String{
+        if yearName.contains("32000") {
+            return "Novo de fábrica"
+        }
+        return yearName
+    }
+    func loadEditData() async {
+            guard let car = carToEdit else { return }
+            
+        fetchBrands()
+            guard let savedBrand = brands.first(where: { $0.name == car.brand }) else { return }
+            selectedBrandCode = String(savedBrand.code)
+            
+        fetchModels(brandCode: selectedBrandCode)
+            guard let savedModel = carModels.first(where: { $0.name == car.model }) else { return }
+            selectedModelCode = String(savedModel.code)
+            
+        fetchYears(brandCode: selectedBrandCode, modelCode: selectedModelCode)
+            if let savedYear = years.first(where: {
+                $0.name.contains(car.year.description) || (car.year == 32000 && $0.name.contains("32000"))
+            }) {
+                selectedYearCode = String(savedYear.code)
+            }
+        }
+    func onAppear() async {
+        if carToEdit != nil {
+            await loadEditData()
+        } else if brands.isEmpty {
+            fetchBrands()
+        }
+    }
 }

@@ -20,28 +20,37 @@ final class DataService: VehicleRepositoryProtocol {
             do {
                 let schema = Schema([Cars.self, CarTask.self])
                 let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-                
+               
                 self.modelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
                 self.modelContext = modelContainer.mainContext
             } catch {
-                fatalError("Erro crítico ao inicializar o banco de dados: \(error)")
+                // Em vez de crashar a app com fatalError, criamos um contentor em memória temporário como fallback seguro
+                let schema = Schema([Cars.self, CarTask.self])
+                let fallbackConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+                do {
+                    self.modelContainer = try ModelContainer(for: schema, configurations: [fallbackConfig])
+                    self.modelContext = modelContainer.mainContext
+                    print("Aviso: Banco recriado em memória devido a erro de migração: \(error)")
+                } catch {
+                    fatalError("Erro crítico absoluto ao inicializar o ModelContainer: \(error)")
+                }
             }
         }
     
-    func fetchAll() async throws -> [Car] {
+    func fetchAll() async throws -> [CarModel] {
         let descriptor = FetchDescriptor<Cars>(sortBy: [SortDescriptor(\.name)])
         let carEntities = try modelContext.fetch(descriptor)
         
-        return carEntities.map { $0.toCar() }
+        return carEntities.map { $0.toCarModel() }
     }
     
-    func save(_ vehicle: Car) async throws {
-        let newCar = vehicle.toCars()
+    func save(_ vehicle: CarModel) async throws {
+        let newCar = vehicle.toEntity()
         modelContext.insert(newCar)
         try modelContext.save()
     }
     
-    func update(_ vehicle: Car) async throws {
+    func update(_ vehicle: CarModel) async throws {
             let vehicleID = vehicle.id
             let predicate = #Predicate<Cars> { $0.id == vehicleID }
             var descriptor = FetchDescriptor<Cars>(predicate: predicate)
@@ -67,7 +76,7 @@ final class DataService: VehicleRepositoryProtocol {
             }
         }
     
-    func delete(_ vehicle: Car) async throws {
+    func delete(_ vehicle: CarModel) async throws {
         let vehicleID = vehicle.id
         let predicate = #Predicate<Cars> { $0.id == vehicleID }
         var descriptor = FetchDescriptor<Cars>(predicate: predicate)
@@ -81,7 +90,7 @@ final class DataService: VehicleRepositoryProtocol {
         }
     }
     
-    func addTask(_ task: CarTaskModel, to vehicle: Car) async throws {
+    func addTask(_ task: CarTaskModel, to vehicle: CarModel) async throws {
         let vehicleID = vehicle.id
         let predicate = #Predicate<Cars> { $0.id == vehicleID }
         var descriptor = FetchDescriptor<Cars>(predicate: predicate)
@@ -90,7 +99,7 @@ final class DataService: VehicleRepositoryProtocol {
         let fetchedEntities = try modelContext.fetch(descriptor)
         
         if let existingCar = fetchedEntities.first {
-            let newTask = task.toTasks()
+            let newTask = task.toEntity()
             existingCar.tasks.append(newTask)
             try modelContext.save()
         }
@@ -109,5 +118,78 @@ final class DataService: VehicleRepositoryProtocol {
                 try modelContext.save()
             }
         }
+    
+    
 }
+
+extension Cars {
+    func toCarModel() -> CarModel {
+        let tasksModels = self.tasks.map { $0.toCarTaskModel() }
+        
+        return CarModel(
+            id: self.id,
+            photo: self.photo,
+            name: self.name,
+            brand: self.brand,
+            model: self.model,
+            year: self.year,
+            fuel: self.fuel,
+            kilometers: String(self.kilometers),
+            fipeValue: self.fipeValue,
+            insurance: self.insurance,
+            alarm: self.alarm,
+            frequency: self.frequency,
+            tasks: tasksModels
+        )
+    }
+}
+
+extension CarModel {
+    func toEntity() -> Cars {
+        let tasksEntities = self.tasks.map { $0.toEntity() }
+        
+        return Cars(
+            id: self.id,
+            photo: self.photo,
+            name: self.name,
+            brand: self.brand,
+            model: self.model,
+            year: self.year,
+            fuel: self.fuel,
+            fipeValue: self.fipeValue,
+            kilometers: Int(self.kilometers) ?? 0,
+            insurance: self.insurance,
+            alarm: self.alarm,
+            frequency: self.frequency,
+            tasks: tasksEntities
+        )
+    }
+}
+
+extension CarTask {
+    func toCarTaskModel() -> CarTaskModel {
+        return CarTaskModel(
+            id: self.id,
+            title: self.title,
+            textDescription: self.textDescription,
+            startDate: self.startDate,
+            endDate: self.endDate,
+            frequency: self.frequency
+        )
+    }
+}
+
+extension CarTaskModel {
+    func toEntity() -> CarTask {
+        return CarTask(
+            id: self.id,
+            title: self.title,
+            textDescription: self.textDescription,
+            startDate: self.startDate,
+            endDate: self.endDate,
+            frequence: self.frequency
+        )
+    }
+}
+
 
