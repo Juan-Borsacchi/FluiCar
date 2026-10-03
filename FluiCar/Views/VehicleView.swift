@@ -9,9 +9,8 @@ import SwiftUI
 @MainActor
 struct VehicleView: View {
     @State var viewModel: VehicleViewModel
+    @State var deleteAlert = false
     @Environment(CoordinatorCore.self) private var coordinator
-    private var uiImage: UIImage? = nil
-    
     var body: some View {
         ZStack{
             Color(.background)
@@ -21,7 +20,7 @@ struct VehicleView: View {
                     VStack{
                         
                         
-                        if let uiImage = uiImage {
+                        if let uiImage = viewModel.carImage {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
@@ -77,9 +76,12 @@ struct VehicleView: View {
                             .frame(minWidth: 372, idealWidth: 180, maxWidth: .infinity, minHeight: 51, idealHeight: 102,  maxHeight: .infinity, alignment: .leading)
                             .background(Color.white)
                             .clipShape(RoundedRectangle(cornerRadius: 17.5))
+
                             HStack(spacing: 12){
                                 InformationsCard(logo: "car.fill", name: "Modelo", information: viewModel.car.model)
-                                InformationsCard(logo: "gearshape.circle.fill", name: "Câbio", information: viewModel.car.kilometers)
+                               
+                                
+                                InformationsCard(logo: "gearshape.circle.fill", name: "Câbio", information: viewModel.transmission.rawValue)
                             }
                             .padding(.top, 4)
                             HStack(spacing: 12){
@@ -102,17 +104,17 @@ struct VehicleView: View {
                         .padding(.leading)
                         .padding(.top)
                     if viewModel.car.tasks.isEmpty {
-                                            VStack(spacing: 12) {
-                                                Image(systemName: "checklist")
-                                                    .font(.system(size: 40))
-                                                    .foregroundStyle(.gray)
-                                                Text("Nenhuma tarefa pendente")
-                                                    .font(.subheadline)
-                                                    .foregroundStyle(.gray)
-                                            }
-                                            .frame(maxWidth: .infinity)
-                                            .padding(.vertical, 32)
-                                            
+                        VStack(spacing: 12) {
+                            Image(systemName: "checklist")
+                                .font(.system(size: 40))
+                                .foregroundStyle(.gray)
+                            Text("Nenhuma tarefa pendente")
+                                .font(.subheadline)
+                                .foregroundStyle(.gray)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 32)
+                        
                     } else {
                         ForEach(viewModel.car.tasks, id: \.id) { task in
                             ZStack(alignment: .leading) {
@@ -157,10 +159,8 @@ struct VehicleView: View {
                         Label("Editar", systemImage: "pencil")
                     }
                     Button(role: .destructive){
-                        Task{
-                            await viewModel.delete()
-                        }
-                        coordinator.pop()
+                        deleteAlert = true
+                       
                     } label: {
                         Label("Excluir", systemImage: "trash")
                     }
@@ -169,6 +169,16 @@ struct VehicleView: View {
                         .foregroundStyle(Color.primary)
                 }
             }
+        }.alert("Remover Automóvel", isPresented: $deleteAlert) {
+            Button("excluir", role: .destructive) {
+                Task{
+                    await viewModel.delete()
+                }
+                coordinator.pop()
+            }
+            Button("Cancelar", role: .cancel) { }
+        } message: {
+            Text("Tem certeza que deseja remover esse automóvel?")
         }
     }
 }

@@ -14,7 +14,7 @@ enum Tabs: Hashable {
 }
 
 struct TabBarsView: View {
-    @State private var selectedTab: Tabs = .maintenance
+    @State private var selectedTab: Tabs = .carHome
     @State private var searchString = ""
     
     @Environment(CoordinatorCore.self) private var coordinator
