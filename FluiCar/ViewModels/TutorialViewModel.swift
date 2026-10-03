@@ -14,27 +14,45 @@ class TutorialViewModel {
     var currentPhase: Int = 0
     var showWarning: Bool = false
     var currentWarningText: String = ""
+    var didFinish: Bool = false
+    
+    private var initialWarningIsVisible = false
+    private var initialWarningWasConfirmed = false
     
     private let defaultInitialWarning = "A realização de qualquer manutenção é por sua conta e risco. Use equipamentos de segurança e fale com alguém com experiência automotiva."
     
-    func loadTutorial(for task: TaskType) {
-        self.tutorial = task.tutorialData
+    func prepareTutorial(for task: TaskType) {
+        tutorial = task.tutorialData
+        currentPhase = 0
+        showWarning = true
+        didFinish = false
+        initialWarningIsVisible = true
+        initialWarningWasConfirmed = false
     }
     
+//    func loadTutorial(for task: TaskType) {
+//        self.tutorial = task.tutorialData
+//    }
+    
     func handlePrimaryAction() {
-        guard let tutorial = tutorial else { return }
-        
-        if currentPhase == 0 {
-            currentWarningText = defaultInitialWarning
-            showWarning = true
-        } else {
-            let currentStepIndex = currentPhase - 1
-            
+            guard let tutorial else { return }
+
+            if currentPhase == 0 {
+                if !initialWarningWasConfirmed {
+                    showInitialWarning()
+                } else {
+                    advancePhase()
+                }
+
+                return
+            }
+
             let nextStepIndex = currentPhase
-            
+
             if nextStepIndex < tutorial.steps.count {
                 if let warning = tutorial.steps[nextStepIndex].warningMessage {
                     currentWarningText = warning
+                    initialWarningIsVisible = false
                     showWarning = true
                 } else {
                     advancePhase()
@@ -43,30 +61,41 @@ class TutorialViewModel {
                 finishTutorial()
             }
         }
-    }
-    
-    func confirmWarning() {
-        showWarning = false
-        advancePhase()
-    }
-    
-    private func advancePhase() {
-        guard let tutorial = tutorial else { return }
-        if currentPhase < tutorial.steps.count {
-            currentPhase += 1
-        } else {
-            finishTutorial()
-        }
-    }
-    
-    func goBack() {
-        if currentPhase > 0 {
-            currentPhase -= 1
-        }
-    }
-    
-    private func finishTutorial() {
-        print("Tutorial Finalizado")
-    }
-}
 
+        func confirmWarning() {
+            showWarning = false
+
+            if initialWarningIsVisible {
+                initialWarningIsVisible = false
+                initialWarningWasConfirmed = true
+            } else {
+                advancePhase()
+            }
+        }
+
+        func goBack() {
+            if currentPhase > 0 {
+                currentPhase -= 1
+            }
+        }
+
+        private func showInitialWarning() {
+            currentWarningText = defaultInitialWarning
+            initialWarningIsVisible = true
+            showWarning = true
+        }
+
+        private func advancePhase() {
+            guard let tutorial else { return }
+
+            if currentPhase < tutorial.steps.count {
+                currentPhase += 1
+            } else {
+                finishTutorial()
+            }
+        }
+
+        private func finishTutorial() {
+            didFinish = true
+        }
+    }
