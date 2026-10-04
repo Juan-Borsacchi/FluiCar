@@ -16,10 +16,12 @@ struct TutorialIntroView: View {
         GeometryReader { geometry in
             VStack(alignment: .leading, spacing: 23) {
                 VStack (alignment: .leading, spacing: 12){
-                    Image(tutorial.introImageName)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: geometry.size.width - 32, height: geometry.size.height * 0.28)
+                    TutorialImageView(image: tutorial.introImage)
+                        .frame(
+                            width: geometry.size.width - 32,
+                            height: geometry.size.height * 0.28
+                        )
+                        .clipped()
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                     
                     

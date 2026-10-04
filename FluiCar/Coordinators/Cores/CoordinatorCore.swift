@@ -66,6 +66,7 @@ final class CoordinatorCore: CoordinatorProtocol {
             searchPath = NavigationPath()
         }
     }
+    
     func presentSheet(_ route: AppRoute) {
         self.sheet = route
     }
@@ -93,8 +94,6 @@ final class CoordinatorCore: CoordinatorProtocol {
             MaintenanceView()
         case .tutorial(let taskType):
             TutorialView(taskType: taskType)
-            
         }
     }
-    
 }

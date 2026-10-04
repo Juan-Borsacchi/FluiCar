@@ -44,10 +44,11 @@ struct TutorialStepView: View {
                 .padding(.horizontal, 8)
                 
                 VStack (spacing: 10) {
-                    Image(step.imageName)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: geometry.size.width - 32, height: geometry.size.height * 0.28)
+                    TutorialImageView(image: step.image)
+                        .frame(
+                            width: geometry.size.width - 32,
+                            height: geometry.size.height * 0.28
+                        )
                         .clipped()
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                     

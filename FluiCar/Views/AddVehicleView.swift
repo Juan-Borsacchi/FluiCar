@@ -4,6 +4,7 @@
 //
 //  Created by Leonardo Gonçalves da Silva on 20/09/26.
 //
+
 import SwiftUI
 import PhotosUI
 
@@ -11,7 +12,7 @@ import PhotosUI
 struct AddVehicleView: View {
     @State var viewModel: AddVehicleViewModel
     @Environment(CoordinatorCore.self) private var coordinator
-    // Variáveis de controle para a Foto
+    
     @State private var showActionSheet = false
     @State private var showCamera = false
     @State private var showGallery = false
@@ -20,6 +21,14 @@ struct AddVehicleView: View {
     @State private var searchText: String = ""
     
     @State private var savedCarResult: CarModel? = nil
+    
+    private func closeView() {
+        if coordinator.sheet != nil {
+            coordinator.dismissSheet()
+        } else {
+            coordinator.pop()
+        }
+    }
     
     var body: some View {
         Form {
@@ -31,7 +40,14 @@ struct AddVehicleView: View {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
-                                .frame(minWidth: 155, idealWidth: 166, maxWidth: 370, minHeight: 155, idealHeight: 166, maxHeight: 166)
+                                .frame(
+                                    minWidth: 155,
+                                    idealWidth: 166,
+                                    maxWidth: 370,
+                                    minHeight: 155,
+                                    idealHeight: 166,
+                                    maxHeight: 166
+                                )
                                 .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                                 .contextMenu {
                                     Button(role: .destructive) {
@@ -55,7 +71,14 @@ struct AddVehicleView: View {
                             Image(systemName: "photo.badge.plus")
                                 .font(.system(size: 40))
                                 .foregroundStyle(Color.accentColor)
-                                .frame(minWidth: 120, idealWidth: 166, maxWidth: 166, minHeight: 120, idealHeight: 166, maxHeight: 166)
+                                .frame(
+                                    minWidth: 120,
+                                    idealWidth: 166,
+                                    maxWidth: 166,
+                                    minHeight: 120,
+                                    idealHeight: 166,
+                                    maxHeight: 166
+                                )
                                 .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 30))
                         }
                     }
@@ -87,7 +110,9 @@ struct AddVehicleView: View {
                     items: viewModel.years.map {
                         (String($0.code), viewModel.formatPickerYear($0.name))
                     },
-                    fallbackName: viewModel.carToEdit != nil ? viewModel.formatPickerYear(viewModel.carToEdit!.year.description) : nil
+                    fallbackName: viewModel.carToEdit != nil
+                    ? viewModel.formatPickerYear(viewModel.carToEdit!.year.description)
+                    : nil
                 )
                 .disabled(viewModel.years.isEmpty && viewModel.carToEdit == nil)
                 
@@ -96,10 +121,9 @@ struct AddVehicleView: View {
                     .padding(.bottom)
             }
             
-            Section(header: Text("Nome do Automóvel").textCase(.none).font(.subheadline).bold()){
+            Section(header: Text("Nome do Automóvel").textCase(.none).font(.subheadline).bold()) {
                 TextField("Digite o nome do seu Automóvel", text: $viewModel.carName)
             }
-            
             
             Section(header: Text("Quilometragem").textCase(.none).font(.subheadline).bold()) {
                 TextField("Ex: 15.000 km", text: $viewModel.carKilometers)
@@ -115,7 +139,7 @@ struct AddVehicleView: View {
                     .tint(.green)
                 if viewModel.insurance {
                     DatePicker("Alarme", selection: $viewModel.alarm, displayedComponents: .date)
-                    Picker("Frequencia", selection: $viewModel.frequency){
+                    Picker("Frequencia", selection: $viewModel.frequency) {
                         Text("Mensal").tag(FrequencyType.monthly)
                         Text("Semestral").tag(FrequencyType.semiannual)
                         Text("Anual").tag(FrequencyType.annual)
@@ -130,7 +154,9 @@ struct AddVehicleView: View {
         
         .toolbar {
             CustomSheetHeader(
-                onDismiss: { coordinator.dismissSheet() },
+                onDismiss: {
+                    closeView()
+                },
                 onSave: {
                     Task {
                         if let savedCar = await viewModel.save() {
@@ -139,7 +165,9 @@ struct AddVehicleView: View {
                         }
                     }
                 },
-                isSaveDisabled: (viewModel.carToEdit == nil || viewModel.isChangingFipe) ? viewModel.selectedYearCode.isEmpty : false
+                isSaveDisabled: (
+                    viewModel.carToEdit == nil || viewModel.isChangingFipe
+                ) ? viewModel.selectedYearCode.isEmpty : false
             )
         }
         
@@ -183,17 +211,28 @@ struct AddVehicleView: View {
         .sheet(isPresented: $showGallery) {
             GalleryPicker(selectedImage: $viewModel.carUIImage)
         }
-        .alert(viewModel.carToEdit != nil ? "Automóvel Atualizado" : "Automóvel Salvo", isPresented: $showSuccessAlert) {
+        .alert(
+            viewModel.carToEdit != nil ? "Automóvel Atualizado" : "Automóvel Salvo",
+            isPresented: $showSuccessAlert
+        ) {
             Button("OK") {
-                coordinator.dismissSheet()
-                if viewModel.carToEdit == nil, let car = savedCarResult {
+                let savedCar = savedCarResult
+                let isCreating = viewModel.carToEdit == nil
+                
+                closeView()
+                
+                if isCreating, let car = savedCar {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         coordinator.push(.vehicle(car))
                     }
                 }
             }
         } message: {
-            Text(viewModel.carToEdit != nil ? "As informações do seu Automóvel foram atualizadas." : "O Automóvel foi cadastrado com sucesso!")
+            Text(
+                viewModel.carToEdit != nil
+                ? "As informações do seu Automóvel foram atualizadas."
+                : "O Automóvel foi cadastrado com sucesso!"
+            )
         }
     }
 }

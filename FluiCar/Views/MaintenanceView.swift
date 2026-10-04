@@ -10,22 +10,21 @@ import SwiftUI
 struct MaintenanceView: View {
     @State private var viewModel = MaintenanceViewModel()
     @State private var selectedFilter = "Todas"
-    
-    @State private var showAddCustomTaskSheet = false // Controla a sheet de cadastro do botão +
-    
+
+    @State private var showAddCustomTaskSheet = false
+
     private let filters = ["Todas", "Prazo para vencer", "Manutenção recente"]
-    
+
     var body: some View {
         ZStack {
             Color("Background")
                 .ignoresSafeArea()
-            
+
             VStack(alignment: .leading) {
                 if viewModel.isLoading || !viewModel.hasLoaded {
                     ProgressView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if !viewModel.hasCars && viewModel.customTasks.isEmpty {
-                    // Estado vazio: nenhum carro cadastrado, então não há manutenção prevista
                     ContentUnavailableView(
                         "Nenhuma manutenção prevista",
                         systemImage: "wrench.and.screwdriver.fill",
@@ -34,31 +33,31 @@ struct MaintenanceView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
-                        // 1. Tarefas Padrão de Manutenção de Todos os Carros Filtradas
                         ForEach(viewModel.filteredTasks(for: selectedFilter)) { task in
                             ZStack(alignment: .leading) {
                                 NavigationLink {
-                                    // Corrigido: Passando taskTitle, vehicleName e dueDateText obrigatoriamente
                                     MaintenanceDetailView(
                                         taskTitle: task.title,
                                         vehicleName: task.vehicle,
-                                        dueDateText: task.dueDate
+                                        dueDateText: task.dueDate,
+                                        taskType: task.taskType
                                     )
                                 } label: {
                                     EmptyView()
                                 }
                                 .opacity(0)
-                                
-                                TaskCard(title: task.title,
-                                         vehicle: task.vehicle,
-                                         dueDate: task.dueDate)
+
+                                TaskCard(
+                                    title: task.title,
+                                    vehicle: task.vehicle,
+                                    dueDate: task.dueDate
+                                )
                             }
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
                             .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                         }
-                        
-                        // 2. Tarefas Personalizadas criadas pelo Utilizador (Com leitura, edição e exclusão)
+
                         ForEach(viewModel.customTasks) { customTask in
                             ZStack(alignment: .leading) {
                                 NavigationLink {
@@ -74,7 +73,7 @@ struct MaintenanceView: View {
                                     EmptyView()
                                 }
                                 .opacity(0)
-                                
+
                                 TaskCard(
                                     title: customTask.title,
                                     vehicle: customTask.vehicleName,
@@ -101,16 +100,15 @@ struct MaintenanceView: View {
                     Spacer()
                 }
             }
-            
+
             ToolbarItemGroup(placement: .topBarTrailing) {
-                // Botão de Adicionar Tarefa Personalizada (Sobe a Sheet de Cadastro)
                 Button {
                     showAddCustomTaskSheet = true
                 } label: {
                     Image(systemName: "plus")
                 }
-                .disabled(!viewModel.hasCars) // precisa de um carro para criar tarefa
-                
+                .disabled(!viewModel.hasCars)
+
                 Menu {
                     Picker("Filtrar", selection: $selectedFilter) {
                         ForEach(filters, id: \.self) { filter in
@@ -122,11 +120,11 @@ struct MaintenanceView: View {
                 }
             }
         }
-        // Recarrega sempre que a tela aparece (ex.: depois de cadastrar um carro na outra aba)
         .onAppear {
-            Task { await viewModel.loadCarAndTasks() }
+            Task {
+                await viewModel.loadCarAndTasks()
+            }
         }
-        // Sheet exclusiva para cadastrar nova tarefa através do botão +
         .sheet(isPresented: $showAddCustomTaskSheet) {
             NavigationStack {
                 AddCustomTaskView { newTask in

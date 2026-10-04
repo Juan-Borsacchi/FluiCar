@@ -8,94 +8,103 @@
 import SwiftUI
 import Observation
 
+@MainActor
 @Observable
-class TutorialViewModel {
+final class TutorialViewModel {
     var tutorial: TutorialModel?
-    var currentPhase: Int = 0
-    var showWarning: Bool = false
-    var currentWarningText: String = ""
-    var didFinish: Bool = false
+    var currentPhase = 0
+    var showWarning = false
+    var currentWarningText = ""
+    var didFinish = false
     
     private var initialWarningIsVisible = false
     private var initialWarningWasConfirmed = false
     
-    private let defaultInitialWarning = "A realização de qualquer manutenção é por sua conta e risco. Use equipamentos de segurança e fale com alguém com experiência automotiva."
+    private let defaultInitialWarning =
+    "A realização de qualquer manutenção é por sua conta e risco. " +
+    "Use equipamentos de segurança e fale com alguém com experiência automotiva."
     
     func prepareTutorial(for task: TaskType) {
         tutorial = task.tutorialData
         currentPhase = 0
-        showWarning = true
         didFinish = false
+        
         initialWarningIsVisible = true
         initialWarningWasConfirmed = false
+        
+        // O texto precisa ser definido antes de ativar o alerta.
+        currentWarningText = defaultInitialWarning
+        showWarning = true
     }
     
-//    func loadTutorial(for task: TaskType) {
-//        self.tutorial = task.tutorialData
-//    }
-    
     func handlePrimaryAction() {
-            guard let tutorial else { return }
-
-            if currentPhase == 0 {
-                if !initialWarningWasConfirmed {
-                    showInitialWarning()
-                } else {
-                    advancePhase()
-                }
-
-                return
-            }
-
-            let nextStepIndex = currentPhase
-
-            if nextStepIndex < tutorial.steps.count {
-                if let warning = tutorial.steps[nextStepIndex].warningMessage {
-                    currentWarningText = warning
-                    initialWarningIsVisible = false
-                    showWarning = true
-                } else {
-                    advancePhase()
-                }
-            } else {
-                finishTutorial()
-            }
+        guard let tutorial else {
+            return
         }
-
-        func confirmWarning() {
-            showWarning = false
-
-            if initialWarningIsVisible {
-                initialWarningIsVisible = false
-                initialWarningWasConfirmed = true
+        
+        if currentPhase == 0 {
+            if !initialWarningWasConfirmed {
+                showInitialWarning()
             } else {
                 advancePhase()
             }
+            
+            return
         }
-
-        func goBack() {
-            if currentPhase > 0 {
-                currentPhase -= 1
-            }
-        }
-
-        private func showInitialWarning() {
-            currentWarningText = defaultInitialWarning
-            initialWarningIsVisible = true
-            showWarning = true
-        }
-
-        private func advancePhase() {
-            guard let tutorial else { return }
-
-            if currentPhase < tutorial.steps.count {
-                currentPhase += 1
+        
+        let nextStepIndex = currentPhase
+        
+        if nextStepIndex < tutorial.steps.count {
+            if let warning = tutorial.steps[nextStepIndex].warningMessage {
+                currentWarningText = warning
+                initialWarningIsVisible = false
+                showWarning = true
             } else {
-                finishTutorial()
+                advancePhase()
             }
-        }
-
-        private func finishTutorial() {
-            didFinish = true
+        } else {
+            finishTutorial()
         }
     }
+    
+    func confirmWarning() {
+        showWarning = false
+        
+        if initialWarningIsVisible {
+            initialWarningIsVisible = false
+            initialWarningWasConfirmed = true
+        } else {
+            advancePhase()
+        }
+    }
+    
+    func goBack() {
+        guard currentPhase > 0 else {
+            return
+        }
+        
+        currentPhase -= 1
+    }
+    
+    private func showInitialWarning() {
+        currentWarningText = defaultInitialWarning
+        initialWarningIsVisible = true
+        showWarning = true
+    }
+    
+    private func advancePhase() {
+        guard let tutorial else {
+            return
+        }
+        
+        if currentPhase < tutorial.steps.count {
+            currentPhase += 1
+        } else {
+            finishTutorial()
+        }
+    }
+    
+    private func finishTutorial() {
+        didFinish = true
+    }
+}

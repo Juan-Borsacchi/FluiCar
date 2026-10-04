@@ -14,33 +14,28 @@ enum Tabs: Hashable {
 }
 
 struct TabBarsView: View {
-    
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = true
     @State private var mostrarOnboarding: Bool = true
-    
+
     @State private var selectedTab: Tabs = .carHome
-  
     @State private var searchString = ""
     @Environment(\.colorScheme) private var colorScheme
-    
+
     @Environment(CoordinatorCore.self) private var coordinator
-    
+
     var body: some View {
         @Bindable var bindableCoordinator = coordinator
-        
+
         TabView(selection: $selectedTab) {
-    
-            // ABA 1: AUTOMÓVEL
             Tab("Automóvel", systemImage: "car.side.fill", value: .carHome) {
                 NavigationStack(path: $bindableCoordinator.carPath) {
                     coordinator.build(.home)
-                            .navigationDestination(for: AppRoute.self) { route in
-                                coordinator.build(route)
-                            }
+                        .navigationDestination(for: AppRoute.self) { route in
+                            coordinator.build(route)
+                        }
                 }
             }
-            
-            // ABA 2: TAREFAS (Manutenção)
+
             Tab("Tarefas", systemImage: "list.bullet.clipboard.fill", value: .maintenance) {
                 NavigationStack(path: $bindableCoordinator.maintenancePath) {
                     coordinator.build(.task)
@@ -49,8 +44,7 @@ struct TabBarsView: View {
                         }
                 }
             }
-            
-            // ABA 3 BUSCA
+
             Tab("Buscar", systemImage: "magnifyingglass", value: .search, role: .prominent) {
                 NavigationStack(path: $bindableCoordinator.searchPath) {
                     Text("Tela de Busca")
@@ -62,15 +56,18 @@ struct TabBarsView: View {
                 }
             }
         }
+        .sheet(item: $bindableCoordinator.sheet) { route in
+            NavigationStack {
+                coordinator.build(route)
+            }
+        }
         .tabViewStyle(.automatic)
-      
-        .onChange(of: selectedTab) { oldValue, newValue in
+        .onChange(of: selectedTab) { _, newValue in
             coordinator.currentTab = newValue
         }
         .onAppear {
             coordinator.currentTab = selectedTab
-            
-            // Mostra o onboarding só na primeira abertura do app
+
             if !hasSeenOnboarding {
                 mostrarOnboarding = true
             }
@@ -78,11 +75,10 @@ struct TabBarsView: View {
         .sheet(isPresented: $mostrarOnboarding) {
             onboardingView
                 .presentationBackground(Color(.systemBackground))
-                .interactiveDismissDisabled() // só fecha pelo botão "Continuar"
+                .interactiveDismissDisabled()
         }
     }
-    
-    // MARK: - Onboarding
+
     private var onboardingView: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
@@ -100,32 +96,32 @@ struct TabBarsView: View {
             }
             .padding(.top, 55)
             .padding(.bottom, 24)
-            
+
             VStack(alignment: .leading, spacing: 14) {
                 Text("Conheça o")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(.primary)
-                
+
                 Text("FluiCar")
                     .font(.system(size: 34, weight: .bold))
                     .foregroundColor(.primary)
             }
             .padding(.horizontal, 54)
             .padding(.bottom, 32)
-            
+
             VStack(alignment: .leading, spacing: 24) {
                 onboardingItem(
                     icon: "car.fill",
                     title: "Cuide dos seus veículos",
                     description: "Tenha as informações essenciais do seu automóvel sempre à mão."
                 )
-                
+
                 onboardingItem(
                     icon: "wrench.and.screwdriver.fill",
                     title: "Controle suas manutenções",
                     description: "Receba lembretes automáticos de prazos e manutenções."
                 )
-                
+
                 onboardingItem(
                     icon: "inset.filled.topthird.middlethird.bottomthird.rectangle",
                     title: "Veja soluções de problema",
@@ -133,9 +129,9 @@ struct TabBarsView: View {
                 )
             }
             .padding(.horizontal, 52)
-            
+
             Spacer()
-            
+
             Button {
                 hasSeenOnboarding = true
                 mostrarOnboarding = false
@@ -152,15 +148,14 @@ struct TabBarsView: View {
             .padding(.bottom, 24)
         }
     }
-    
-    // Linha de destaque do onboarding: ícone + título + descrição
+
     private func onboardingItem(icon: String, title: String, description: String) -> some View {
         HStack(alignment: .top, spacing: 1) {
             Image(systemName: icon)
                 .font(.system(size: 24))
                 .foregroundColor(.primary)
                 .frame(width: 32)
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.system(size: 17, weight: .semibold))

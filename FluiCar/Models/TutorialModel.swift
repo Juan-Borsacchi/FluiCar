@@ -7,9 +7,14 @@
 
 import Foundation
 
+enum TutorialImage: Hashable {
+    case asset(name: String, fallback: String)
+    case system(String)
+}
+
 struct TutorialModel {
     let title: String
-    let introImageName: String
+    let introImage: TutorialImage
     let introDescription: String
     let introNote: String?
     let materials: [TutorialMaterial]
@@ -26,6 +31,6 @@ struct TutorialStep: Identifiable {
     let id = UUID()
     let title: String
     let description: String
-    let imageName: String
+    let image: TutorialImage
     let warningMessage: String?
 }
