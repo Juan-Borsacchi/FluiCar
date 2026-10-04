@@ -35,5 +35,6 @@ struct SearchablePicker: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .toolbar(.hidden, for: .tabBar)
     }
 }

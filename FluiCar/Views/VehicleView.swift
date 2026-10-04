@@ -143,6 +143,7 @@ struct VehicleView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             }
         }
+        .toolbar(.hidden, for:.tabBar)
         .onAppear {
             Task {
                 await viewModel.fetchInformations()

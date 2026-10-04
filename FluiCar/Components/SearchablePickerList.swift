@@ -48,5 +48,6 @@ struct SearchablePickerList: View {
         .searchable(text: $searchText, prompt: "Buscar \(title.lowercased())...")
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
     }
 }

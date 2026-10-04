@@ -19,6 +19,8 @@ struct AddVehicleView: View {
     @State private var showSuccessAlert = false
     @State private var searchText: String = ""
     
+    @State private var savedCarResult: CarModel? = nil
+    
     var body: some View {
         Form {
             Section {
@@ -121,7 +123,7 @@ struct AddVehicleView: View {
             }
         }
         .scrollDismissesKeyboard(.interactively)
-        
+        .navigationBarBackButtonHidden(true)
         .navigationTitle(viewModel.carToEdit != nil ? "Editar Automóvel" : "Novo Automóvel")
         .navigationBarTitleDisplayMode(.inline)
         
@@ -130,11 +132,14 @@ struct AddVehicleView: View {
                 onDismiss: { coordinator.dismissSheet() },
                 onSave: {
                     Task {
-                        await viewModel.save()
-                        showSuccessAlert = true
+                        if let savedCar = await viewModel.save() {
+                            self.savedCarResult = savedCar
+                            showSuccessAlert = true
+                        }
                     }
                 },
-                isSaveDisabled: (viewModel.carToEdit == nil || viewModel.isChangingFipe) ? viewModel.selectedYearCode.isEmpty : false            )
+                isSaveDisabled: (viewModel.carToEdit == nil || viewModel.isChangingFipe) ? viewModel.selectedYearCode.isEmpty : false
+            )
         }
         
         .overlay {
@@ -180,6 +185,11 @@ struct AddVehicleView: View {
         .alert(viewModel.carToEdit != nil ? "Automóvel Atualizado" : "Automóvel Salvo", isPresented: $showSuccessAlert) {
             Button("OK") {
                 coordinator.dismissSheet()
+                if viewModel.carToEdit == nil, let car = savedCarResult {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        coordinator.push(.vehicle(car))
+                    }
+                }
             }
         } message: {
             Text(viewModel.carToEdit != nil ? "As informações do seu Automóvel foram atualizadas." : "O Automóvel foi cadastrado com sucesso!")
@@ -187,29 +197,31 @@ struct AddVehicleView: View {
     }
 }
 
-//#Preview("Modo Criação") {
-//    NavigationStack {
-//        AddVehicleView(viewModel: AddVehicleViewModel())
-//    }
-//}
-//
-//#Preview("Modo Edição") {
-//    let mockCar = CarModel(
-//        id: UUID(),
-//        photo: Data(),
-//        name: "Batmóvel",
-//        brand: "Ford",
-//        model: "Mustang",
-//        year: 1969,
-//        fuel: "Gasolina",
-//        kilometers: "15000",
-//        fipeValue: "350000.00",
-//        insurance: true,
-//        alarm: Date(),
-//        frequency: .annual
-//    )
-//    
-//   NavigationStack {
-//        AddVehicleView(viewModel: AddVehicleViewModel(car: mockCar))
-//    }
-//}
+#Preview("Modo Criação") {
+    NavigationStack {
+        AddVehicleView(viewModel: AddVehicleViewModel())
+    }
+    .environment(CoordinatorCore())
+}
+
+#Preview("Modo Edição") {
+    let mockCar = CarModel(
+        id: UUID(),
+        photo: Data(),
+        name: "Batmóvel",
+        brand: "Ford",
+        model: "Mustang",
+        year: 1969,
+        fuel: "Gasolina",
+        kilometers: "15000",
+        fipeValue: "350000.00",
+        insurance: true,
+        alarm: Date(),
+        frequency: .annual
+    )
+    
+    NavigationStack {
+        AddVehicleView(viewModel: AddVehicleViewModel(car: mockCar))
+    }
+    .environment(CoordinatorCore())
+}

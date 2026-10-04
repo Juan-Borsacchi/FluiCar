@@ -17,9 +17,9 @@ struct CustomSheetHeader: ToolbarContent {
                 Image(systemName: "xmark")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(.primary)
-                    .frame(width: 44, height: 44)
                    
             }
+
         }
         ToolbarItem(placement: .topBarTrailing){
             Button(action: onSave) {

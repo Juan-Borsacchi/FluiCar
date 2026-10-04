@@ -34,8 +34,8 @@ class AddVehicleViewModel {
     }
     
     var carKilometers: String = ""
-   
-   
+    
+    
     
     var carName: String = ""
     var insurance = false
@@ -47,14 +47,14 @@ class AddVehicleViewModel {
     var fipeInfo: FipeInformationResponse?
     var showPriceAlert = false
     var carUIImage: UIImage? = nil {
-            didSet {
-                if carUIImage == nil {
-                    self.carPhotoData = nil
-                }
+        didSet {
+            if carUIImage == nil {
+                self.carPhotoData = nil
             }
         }
-        
-        private var carPhotoData: Data? = nil
+    }
+    
+    private var carPhotoData: Data? = nil
     init(car: CarModel? = nil, service: (any VehicleServiceProtocol)? = nil, dataBase: any VehicleRepositoryProtocol? = nil) {
         self.service = service ?? ParallelumService()
         self.dataBase = dataBase ?? DataService.shared
@@ -158,106 +158,106 @@ class AddVehicleViewModel {
             }
         }
     }
-    
-    func save() async {
-        isLoading = true
-            do {
-                let cleanKilometers = carKilometers.filter { $0.isNumber }
-                let photoToSave = carUIImage?.jpegData(compressionQuality: 0.8) ?? Data()
-                if let existingCar = carToEdit {
-                    
-                    var updatedCar = existingCar
-                    updatedCar.name = carName
-                    updatedCar.photo = photoToSave
-                    updatedCar.kilometers = cleanKilometers
-                    updatedCar.insurance = insurance
-                    updatedCar.alarm = alarm
-                    updatedCar.frequency = frequency
-                    
-                    if let brandId = Int(selectedBrandCode), let modelId = Int(selectedModelCode), !selectedYearCode.isEmpty {
-                        let request = FipeInformationRequest(vehicleType: "cars", brandId: brandId, modelId: modelId, yearId: selectedYearCode)
-                        let fipeResult = try await service.fetchFipeInformation(request: request)
-                        
-                        updatedCar.brand = fipeResult.brand
-                        updatedCar.model = fipeResult.model
-                        updatedCar.year = fipeResult.modelYear
-                        updatedCar.fuel = fipeResult.fuel
-                        updatedCar.fipeValue = fipeResult.price
-                        updatedCar.name = carName.isEmpty ? fipeResult.model : carName
-                    }
-                    
-                    try await dataBase.update(updatedCar)
-                    print("Data updated")
-                    
-                }else{
-                    guard let brandId = Int(selectedBrandCode), let modelId = Int(selectedModelCode) else {
-                        isLoading = false
-                        return
-                    }
 
-                    // 1. Busca as informações completas da FIPE para garantir o preço exato
-                    let request = FipeInformationRequest(
-                        vehicleType: "cars",
-                        brandId: brandId,
-                        modelId: modelId,
-                        yearId: selectedYearCode
-                    )
-                    
+    func save() async -> CarModel? {
+        isLoading = true
+        do {
+            let cleanKilometers = carKilometers.filter { $0.isNumber }
+            let photoToSave = carUIImage?.jpegData(compressionQuality: 0.8) ?? Data()
+            
+            if let existingCar = carToEdit {
+                var updatedCar = existingCar
+                updatedCar.name = carName
+                updatedCar.photo = photoToSave
+                updatedCar.kilometers = cleanKilometers
+                updatedCar.insurance = insurance
+                updatedCar.alarm = alarm
+                updatedCar.frequency = frequency
+                
+                if let brandId = Int(selectedBrandCode), let modelId = Int(selectedModelCode), !selectedYearCode.isEmpty {
+                    let request = FipeInformationRequest(vehicleType: "cars", brandId: brandId, modelId: modelId, yearId: selectedYearCode)
                     let fipeResult = try await service.fetchFipeInformation(request: request)
                     
-                    
-                    let vehicleToSave = CarModel(
-                        id: UUID(),
-                        photo: carPhotoData ?? Data(),
-                        name: carName.isEmpty ? fipeResult.model : carName,
-                        brand: fipeResult.brand,
-                        model: fipeResult.model,
-                        year: fipeResult.modelYear,
-                        fuel: fipeResult.fuel,
-                        kilometers: cleanKilometers,
-                        fipeValue: fipeResult.price,
-                        insurance: insurance,
-                        alarm: alarm,
-                        frequency: frequency
-                    )
-                    
-                    
-                    try await dataBase.save(vehicleToSave)
-                    print("Data saved")
-                    
-                    isLoading = false
+                    updatedCar.brand = fipeResult.brand
+                    updatedCar.model = fipeResult.model
+                    updatedCar.year = fipeResult.modelYear
+                    updatedCar.fuel = fipeResult.fuel
+                    updatedCar.fipeValue = fipeResult.price
+                    updatedCar.name = carName.isEmpty ? fipeResult.model : carName
                 }
-            } catch {
-                print("Error ao buscar FIPE para salvar: \(error)")
-                isLoading = false
-            }
-        }
-    
-        func formatKilometers(oldValue: String, newValue: String) {
-            let oldNumbers = oldValue.filter { $0.isNumber }
-            var newNumbers = newValue.filter { $0.isNumber }
-            
-            if newValue.count < oldValue.count && oldNumbers == newNumbers {
-                if !newNumbers.isEmpty {
-                    newNumbers.removeLast()
-                }
-            }
-            if newNumbers.count > 7 {
-                newNumbers = String(newNumbers.prefix(7))
-            }
-            
-            if let number = Int(newNumbers) {
-                let formatter = NumberFormatter()
-                formatter.numberStyle = .decimal
-                formatter.locale = Locale(identifier: "pt_BR")
                 
-                if let formattedNumber = formatter.string(from: NSNumber(value: number)) {
-                    self.carKilometers = "\(formattedNumber) km"
-                }
+                try await dataBase.update(updatedCar)
+                isLoading = false
+                print("Data updated")
+                return updatedCar // <--- Retorna o carro atualizado
+                
             } else {
-                self.carKilometers = ""
+                guard let brandId = Int(selectedBrandCode), let modelId = Int(selectedModelCode) else {
+                    isLoading = false
+                    return nil
+                }
+
+                let request = FipeInformationRequest(
+                    vehicleType: "cars",
+                    brandId: brandId,
+                    modelId: modelId,
+                    yearId: selectedYearCode
+                )
+                
+                let fipeResult = try await service.fetchFipeInformation(request: request)
+                
+                let vehicleToSave = CarModel(
+                    id: UUID(),
+                    photo: carPhotoData ?? Data(),
+                    name: carName.isEmpty ? fipeResult.model : carName,
+                    brand: fipeResult.brand,
+                    model: fipeResult.model,
+                    year: fipeResult.modelYear,
+                    fuel: fipeResult.fuel,
+                    kilometers: cleanKilometers,
+                    fipeValue: fipeResult.price,
+                    insurance: insurance,
+                    alarm: alarm,
+                    frequency: frequency
+                )
+                
+                try await dataBase.save(vehicleToSave)
+                isLoading = false
+                print("Data saved")
+                return vehicleToSave // <--- Retorna o carro recém-criado
+            }
+        } catch {
+            print("Error ao buscar FIPE para salvar: \(error)")
+            isLoading = false
+            return nil
+        }
+    }
+    
+    func formatKilometers(oldValue: String, newValue: String) {
+        let oldNumbers = oldValue.filter { $0.isNumber }
+        var newNumbers = newValue.filter { $0.isNumber }
+        
+        if newValue.count < oldValue.count && oldNumbers == newNumbers {
+            if !newNumbers.isEmpty {
+                newNumbers.removeLast()
             }
         }
+        if newNumbers.count > 7 {
+            newNumbers = String(newNumbers.prefix(7))
+        }
+        
+        if let number = Int(newNumbers) {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.locale = Locale(identifier: "pt_BR")
+            
+            if let formattedNumber = formatter.string(from: NSNumber(value: number)) {
+                self.carKilometers = "\(formattedNumber) km"
+            }
+        } else {
+            self.carKilometers = ""
+        }
+    }
     
     func formatPickerYear(_ yearName: String) -> String{
         if yearName.contains("32000") {
@@ -266,23 +266,23 @@ class AddVehicleViewModel {
         return yearName
     }
     func loadEditData() async {
-            guard let car = carToEdit else { return }
-            
+        guard let car = carToEdit else { return }
+        
         fetchBrands()
-            guard let savedBrand = brands.first(where: { $0.name == car.brand }) else { return }
-            selectedBrandCode = String(savedBrand.code)
-            
+        guard let savedBrand = brands.first(where: { $0.name == car.brand }) else { return }
+        selectedBrandCode = String(savedBrand.code)
+        
         fetchModels(brandCode: selectedBrandCode)
-            guard let savedModel = carModels.first(where: { $0.name == car.model }) else { return }
-            selectedModelCode = String(savedModel.code)
-            
+        guard let savedModel = carModels.first(where: { $0.name == car.model }) else { return }
+        selectedModelCode = String(savedModel.code)
+        
         fetchYears(brandCode: selectedBrandCode, modelCode: selectedModelCode)
-            if let savedYear = years.first(where: {
-                $0.name.contains(car.year.description) || (car.year == 32000 && $0.name.contains("32000"))
-            }) {
-                selectedYearCode = String(savedYear.code)
-            }
+        if let savedYear = years.first(where: {
+            $0.name.contains(car.year.description) || (car.year == 32000 && $0.name.contains("32000"))
+        }) {
+            selectedYearCode = String(savedYear.code)
         }
+    }
     func onAppear() async {
         if carToEdit != nil {
             await loadEditData()
