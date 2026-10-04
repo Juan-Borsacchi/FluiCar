@@ -44,6 +44,7 @@ struct AddVehicleView: View {
                                     Button("Remover", role: .destructive) {
                                         withAnimation {
                                             viewModel.carUIImage = nil
+                                            viewModel.didRemovePhoto = true
                                         }
                                     }
                                     Button("Cancelar", role: .cancel) { }

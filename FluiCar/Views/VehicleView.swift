@@ -17,85 +17,85 @@ struct VehicleView: View {
                 .ignoresSafeArea()
             ScrollView {
                 
-                    VStack{
+                VStack{
+                    
+                    
+                    if let uiImage = viewModel.carImage {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(minWidth: 155, idealWidth: 166, maxWidth: 370, minHeight: 155, idealHeight: 166, maxHeight: 166, alignment: .center)
+                            .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+                            .clipped()
                         
                         
-                        if let uiImage = viewModel.carImage {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(minWidth: 155, idealWidth: 166, maxWidth: 370, minHeight: 155, idealHeight: 166, maxHeight: 166, alignment: .center)
-                                .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                                .clipped()
-                            
-                            
-                        } else {
-                            Image(systemName: "photo")
-                                .font(.system(size: 40))
-                                .foregroundStyle(Color.accentColor)
-                                .frame(minWidth: 155, idealWidth: 166, maxWidth: 370, minHeight: 155, idealHeight: 166, maxHeight: 166, alignment: .center)
-                                .background(Color.gray.opacity(0.3))
-                                .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                            
-                        }
-                        
-                        VStack(alignment: .leading){
-                            
-                            Text("\(viewModel.car.brand) \(viewModel.car.model)")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.white)
-                                .padding(.top, 4)
-                            
-                            Text("Ano do Modelo: \(viewModel.car.year.description)")
-                                .font(.caption)
-                                .foregroundStyle(.white)
-                            
-                            Text("Especificações do Automóvel")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.white)
-                                .padding(.top, 4)
-                            HStack(spacing: 20) {
-                                Image(systemName: "dollarsign.circle.fill")
-                                    .font(.subheadline)
-                                    .foregroundStyle(Color.accent)
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                
-                                Text("Preço na FIPE")
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                                    .foregroundStyle(.black)
-                                Spacer()
-                                Text("\(viewModel.car.fipeValue) R$")
-                                    .font(.footnote)
-                                    .foregroundStyle(.gray)
-                                
-                            }
-                            .padding()
-                            .frame(minWidth: 372, idealWidth: 180, maxWidth: .infinity, minHeight: 51, idealHeight: 102,  maxHeight: .infinity, alignment: .leading)
-                            .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 17.5))
-
-                            HStack(spacing: 12){
-                                InformationsCard(logo: "car.fill", name: "Modelo", information: viewModel.car.model)
-                               
-                                
-                                InformationsCard(logo: "gearshape.circle.fill", name: "Câbio", information: viewModel.transmission.rawValue)
-                            }
-                            .padding(.top, 4)
-                            HStack(spacing: 12){
-                                InformationsCard(logo: "drop.circle.fill", name: "Combustível", information: viewModel.car.fuel)
-                                InformationsCard(logo: "gauge.open.with.lines.needle.33percent", name: "Quilometragem", information: "\(viewModel.car.kilometers) km")
-                            }
-                            .padding(.vertical, 4)
-                        }
+                    } else {
+                        Image(systemName: "photo")
+                            .font(.system(size: 40))
+                            .foregroundStyle(Color.accentColor)
+                            .frame(minWidth: 155, idealWidth: 166, maxWidth: 370, minHeight: 155, idealHeight: 166, maxHeight: 166, alignment: .center)
+                            .background(Color.gray.opacity(0.3))
+                            .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                         
                     }
-                    .padding()
-                    .frame(minWidth: 350, maxWidth: .infinity, minHeight: 500, maxHeight: .infinity, alignment: .top)
-                    .metallicBackground()
-                    .padding(.horizontal, 5)
+                    
+                    VStack(alignment: .leading){
+                        
+                        Text("\(viewModel.car.brand) \(viewModel.car.model)")
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+                            .padding(.top, 4)
+                        
+                        Text("Ano do Modelo: \(viewModel.car.year.description)")
+                            .font(.caption)
+                            .foregroundStyle(.white)
+                        
+                        Text("Especificações do Automóvel")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                            .padding(.top, 4)
+                        HStack(spacing: 20) {
+                            Image(systemName: "dollarsign.circle.fill")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.accent)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                            
+                            Text("Preço na FIPE")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.black)
+                            Spacer()
+                            Text("\(viewModel.car.fipeValue) R$")
+                                .font(.footnote)
+                                .foregroundStyle(.gray)
+                            
+                        }
+                        .padding()
+                        .frame(minWidth: 372, idealWidth: 180, maxWidth: .infinity, minHeight: 51, idealHeight: 102,  maxHeight: .infinity, alignment: .leading)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 17.5))
+                        
+                        HStack(spacing: 12){
+                            InformationsCard(logo: "car.fill", name: "Modelo", information: viewModel.car.model)
+                            
+                            
+                            InformationsCard(logo: "gearshape.circle.fill", name: "Câbio", information: viewModel.transmission.rawValue)
+                        }
+                        .padding(.top, 4)
+                        HStack(spacing: 12){
+                            InformationsCard(logo: "drop.circle.fill", name: "Combustível", information: viewModel.car.fuel)
+                            InformationsCard(logo: "gauge.open.with.lines.needle.33percent", name: "Quilometragem", information: "\(viewModel.car.kilometers) km")
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    
+                }
+                .padding()
+                .frame(minWidth: 350, maxWidth: .infinity, minHeight: 500, maxHeight: .infinity, alignment: .top)
+                .metallicBackground()
+                .padding(.horizontal, 5)
                 VStack(alignment: .leading){
                     Text("Proximas Tarefas")
                         .font(.headline)
@@ -149,19 +149,35 @@ struct VehicleView: View {
                 await viewModel.fetchInformations()
             }
         }
+        .onChange(of: coordinator.sheet) { _, sheet in
+            if sheet == nil {
+                Task {
+                    await viewModel.fetchInformations()
+                }
+            }
+        }
         .navigationTitle(viewModel.car.name)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing){
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    coordinator.popToRoot()
+                } label: {
+                    Label("Automóveis", systemImage: "chevron.left")
+                }
+            }
+            
+            ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button {
                         coordinator.presentSheet(.editVehicle(viewModel.car))
                     } label: {
                         Label("Editar", systemImage: "pencil")
                     }
-                    Button(role: .destructive){
+                    
+                    Button(role: .destructive) {
                         deleteAlert = true
-                       
                     } label: {
                         Label("Excluir", systemImage: "trash")
                     }

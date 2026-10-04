@@ -25,10 +25,8 @@ class VehicleViewModel {
         loadPhoto()
     }
 
-    private func loadPhoto(){
-        if  let image = UIImage(data: car.photo) {
-            self.carImage = image
-        }
+    private func loadPhoto() {
+        carImage = UIImage(data: car.photo)
     }
     
     func fetchInformations() async {

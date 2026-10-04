@@ -9,30 +9,30 @@ import SwiftUI
 
 struct AutomobileHomeView: View {
     @State private var viewModel = AutomobileHomeViewModel()
-    @State private var showAddVehicle = false
     
+    @Environment(CoordinatorCore.self) private var coordinator
     
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .bottom) {
-                Color("Background")
-                    .ignoresSafeArea()
-                
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 24) {
-                        
-                        // Seção: Carrossel de Automóveis cadastrados
-                        if viewModel.hasLoaded {
-                            if viewModel.cars.isEmpty {
-                                EmptyVehiclesCardView {
-                                    showAddVehicle = true
-                                }
-                                .padding(.horizontal)
-                                .padding(.top, 8)
-                            } else {
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack(spacing: 16) {
-                                        ForEach(viewModel.cars) { car in
+        ZStack(alignment: .bottom) {
+            Color("Background")
+                .ignoresSafeArea()
+            
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 24) {
+                    
+                    // Seção: Carrossel de Automóveis cadastrados
+                    if viewModel.hasLoaded {
+                        if viewModel.cars.isEmpty {
+                            EmptyVehiclesCardView {
+                                coordinator.push(.addVehicle)
+                            }
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                        } else {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 16) {
+                                    ForEach(viewModel.cars) { car in
+                                        NavigationLink(value: AppRoute.vehicle(car)) {
                                             AutomobileCardView(
                                                 photo: car.photo,
                                                 modelName: car.brand,
@@ -41,71 +41,69 @@ struct AutomobileHomeView: View {
                                                 nextTask: viewModel.nextTaskText(for: car)
                                             )
                                         }
+                                        .buttonStyle(.plain)
                                     }
-                                    .padding(.horizontal)
-                                }
-                                .padding(.top, 8)
-                            }
-                        }
-                        
-                        // Seção: Tutoriais de Manutenção
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Tutoriais de manutenção")
-                                .font(.system(size: 24, weight: .semibold))
-                                .padding(.horizontal)
-                            
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 16) {
-                                    TutorialCardView(
-                                        imageName: "passo1_oleo",
-                                        title: "Troca de Óleo Rápida",
-                                        duration: "5 min",
-                                        level: "Iniciante"
-                                    )
-                                    
-                                    TutorialCardView(
-                                        imageName: "calibration_image",
-                                        title: "Calibragem Correta",
-                                        duration: "3 min",
-                                        level: "Iniciante"
-                                    )
                                 }
                                 .padding(.horizontal)
                             }
+                            .padding(.top, 8)
                         }
+                    }
+                    
+                    // Seção: Tutoriais de Manutenção
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Tutoriais de manutenção")
+                            .font(.system(size: 24, weight: .semibold))
+                            .padding(.horizontal)
                         
-                        Spacer(minLength: 100)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                TutorialCardView(
+                                    imageName: "passo1_oleo",
+                                    title: "Troca de Óleo Rápida",
+                                    duration: "5 min",
+                                    level: "Iniciante"
+                                )
+                                
+                                TutorialCardView(
+                                    imageName: "calibration_image",
+                                    title: "Calibragem Correta",
+                                    duration: "3 min",
+                                    level: "Iniciante"
+                                )
+                            }
+                            .padding(.horizontal)
+                        }
                     }
+                    
+                    Spacer(minLength: 100)
                 }
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Text("Automóveis")
-                        .font(.system(size: 24, weight: .semibold))
-                        .fixedSize(horizontal: true, vertical: false)
-                }
-                .sharedBackgroundVisibility(.hidden)
-                
-                // Botão de adicionar à direita
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showAddVehicle = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                }
-            }
-            .navigationDestination(isPresented: $showAddVehicle) {
-                ContentView()
             }
         }
-        // Recarrega sempre que a tela aparece (inclusive ao voltar do cadastro)
         .onAppear {
             Task { await viewModel.loadCars() }
         }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Text("Automóveis")
+                    .font(.system(size: 24, weight: .semibold))
+                    .fixedSize(horizontal: true, vertical: false)
+            }
+            .sharedBackgroundVisibility(.hidden)
+            
+            // Botão de adicionar à direita
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    coordinator.push(.addVehicle)
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
     }
 }
+
 
 // MARK: - Estado vazio (nenhum veículo cadastrado)
 struct EmptyVehiclesCardView: View {
@@ -127,7 +125,7 @@ struct EmptyVehiclesCardView: View {
                 .foregroundColor(.white.opacity(0.7))
                 .multilineTextAlignment(.center)
             
-           
+            
         }
         .padding(24)
         .frame(maxWidth: .infinity)
@@ -261,4 +259,5 @@ struct TutorialCardView: View {
 
 #Preview {
     AutomobileHomeView()
+        .environment(CoordinatorCore())
 }
