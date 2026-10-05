@@ -1,601 +1,455 @@
 //
-//  MaintenanceDetailView.swift
+//  MaintenanceViewModel.swift
 //  FluiCar
 //
 //  Created by Isabella Avelina on 29/09/26.
 //
 
+import Foundation
 import SwiftUI
+import Observation
+import UserNotifications
 
-struct TutorialItem: Identifiable {
-    let id = UUID()
-    let title: String
-    let duration: String
-    let level: String
-    let taskType: TaskType
-}
+@MainActor
+@Observable
+class MaintenanceViewModel {
+    var tasks: [TaskItemModel] = []
+    var customTasks: [CustomTaskModel] = []
+    var isLoading = false
+    var hasLoaded = false
+    var hasCars = false
+    var vehicleNames: [String] = []
 
-struct MaintenanceDetailView: View {
-    @Environment(\.dismiss) private var dismiss
-    @Environment(CoordinatorCore.self) private var coordinator
+    private static let customTasksKey = "customTasks"
 
-    var taskTitle: String
-    var vehicleName: String
-    var dueDateText: String
-    var taskType: TaskType?
-    var customTask: CustomTaskModel?
-    var onUpdateCustomTask: ((CustomTaskModel) -> Void)?
-
-    @State private var selectedOption: String = "Padrão"
-    @State private var lastCheckDate = Date()
-    @State private var nextCheckDate: Date =
-        Calendar.current.date(byAdding: .month, value: 3, to: Date()) ?? Date()
-
-    @State private var currentCustomTask: CustomTaskModel?
-    @State private var showEditSheet = false
-
-    init(
-        taskTitle: String,
-        vehicleName: String,
-        dueDateText: String,
-        taskType: TaskType? = nil,
-        customTask: CustomTaskModel? = nil,
-        onUpdateCustomTask: ((CustomTaskModel) -> Void)? = nil
-    ) {
-        self.taskTitle = taskTitle
-        self.vehicleName = vehicleName
-        self.dueDateText = dueDateText
-        self.taskType = taskType
-        self.customTask = customTask
-        self.onUpdateCustomTask = onUpdateCustomTask
-        _currentCustomTask = State(initialValue: customTask)
+    struct TaskItemModel: Identifiable {
+        let id = UUID()
+        let key: String
+        let title: String
+        let vehicle: String
+        let dueDate: String
+        let rawDate: Date
+        let taskType: TaskType
     }
 
-    private var normalizedTaskTitle: String {
-        taskTitle.folding(
-            options: [.diacriticInsensitive, .caseInsensitive],
-            locale: .current
-        )
+    init() {
+        customTasks = Self.loadCustomTasks()
     }
 
-    private var optionsList: [String] {
-        let title = normalizedTaskTitle
 
-        if title.contains("oleo") {
-            return [
-                "Mineral 15W40",
-                "Sintético 5W30",
-                "Semi-sintético 10W40",
-                "Outro"
-            ]
+    func addCustomTask(_ task: CustomTaskModel) {
+        if let index = customTasks.firstIndex(where: { $0.id == task.id }) {
+            customTasks[index] = task
+        } else {
+            customTasks.append(task)
         }
 
-        if title.contains("radiador") || title.contains("agua") {
-            return [
-                "Água Desmineralizada + Aditivo",
-                "Apenas Água Desmineralizada"
-            ]
-        }
-
-        if title.contains("pneu") {
-            return [
-                "Calibragem Padrão (30 PSI)",
-                "Calibragem com Carga (32+ PSI)"
-            ]
-        }
-
-        if title.contains("bateria") {
-            return [
-                "Bateria em bom estado",
-                "Bateria precisa de teste"
-            ]
-        }
-
-        if title.contains("freio") {
-            return [
-                "Desgaste normal",
-                "Necessita avaliação"
-            ]
-        }
-
-        return [
-            "Verificação Padrão",
-            "Substituição Completa"
-        ]
+        saveCustomTasks()
+        MaintenanceReminderService.schedule(customTask: task)
     }
 
-    private var subtitleLabel: String {
-        let title = normalizedTaskTitle
+    func deleteCustomTask(at offsets: IndexSet) {
+        let ids = offsets.map { customTasks[$0].id }
+        customTasks.remove(atOffsets: offsets)
 
-        if title.contains("oleo") {
-            return "Tipo de óleo"
-        }
-
-        if title.contains("radiador") || title.contains("agua") {
-            return "Fluido utilizado"
-        }
-
-        if title.contains("pneu") {
-            return "Tipo de calibragem"
-        }
-
-        if title.contains("bateria") {
-            return "Estado da bateria"
-        }
-
-        if title.contains("freio") {
-            return "Estado dos freios"
-        }
-
-        return "Especificação"
+        saveCustomTasks()
+        ids.forEach { MaintenanceReminderService.cancel(customTaskID: $0) }
     }
 
-    private var tutorialsList: [TutorialItem] {
-        if let taskType {
-            switch taskType {
-            case .oilChange:
-                return [
-                    TutorialItem(
-                        title: "Troca completa",
-                        duration: TaskType.oilChange.duration,
-                        level: TaskType.oilChange.level,
-                        taskType: .oilChange
-                    ),
-                    TutorialItem(
-                        title: "Verificação do nível",
-                        duration: TaskType.oilCheck.duration,
-                        level: TaskType.oilCheck.level,
-                        taskType: .oilCheck
-                    )
-                ]
-
-            case .oilCheck:
-                return [
-                    TutorialItem(
-                        title: "Verificação do nível",
-                        duration: TaskType.oilCheck.duration,
-                        level: TaskType.oilCheck.level,
-                        taskType: .oilCheck
-                    ),
-                    TutorialItem(
-                        title: "Troca completa",
-                        duration: TaskType.oilChange.duration,
-                        level: TaskType.oilChange.level,
-                        taskType: .oilChange
-                    )
-                ]
-
-            case .waterCheck:
-                return [
-                    TutorialItem(
-                        title: "Verificar a água do radiador",
-                        duration: TaskType.waterCheck.duration,
-                        level: TaskType.waterCheck.level,
-                        taskType: .waterCheck
-                    )
-                ]
-
-            case .brakeCheck:
-                return [
-                    TutorialItem(
-                        title: "Verificar os freios",
-                        duration: TaskType.brakeCheck.duration,
-                        level: TaskType.brakeCheck.level,
-                        taskType: .brakeCheck
-                    )
-                ]
-
-            case .tireCalibration:
-                return [
-                    TutorialItem(
-                        title: "Calibragem correta",
-                        duration: TaskType.tireCalibration.duration,
-                        level: TaskType.tireCalibration.level,
-                        taskType: .tireCalibration
-                    )
-                ]
-
-            case .batteryCheck:
-                return [
-                    TutorialItem(
-                        title: "Verificar a bateria",
-                        duration: TaskType.batteryCheck.duration,
-                        level: TaskType.batteryCheck.level,
-                        taskType: .batteryCheck
-                    )
-                ]
-            }
+    private func saveCustomTasks() {
+        if let data = try? JSONEncoder().encode(customTasks) {
+            UserDefaults.standard.set(data, forKey: Self.customTasksKey)
         }
-
-        return []
     }
 
-    private func completeTask() {
+    private static func loadCustomTasks() -> [CustomTaskModel] {
+        guard
+            let data = UserDefaults.standard.data(forKey: customTasksKey),
+            let tasks = try? JSONDecoder().decode([CustomTaskModel].self, from: data)
+        else {
+            return []
+        }
+        return tasks
+    }
+
+  
+
+    func filteredTasks(for filter: String) -> [TaskItemModel] {
+        switch filter {
+        case "Prazo para vencer":
+            return tasks.sorted { $0.rawDate < $1.rawDate }
+
+        case "Manutenção recente":
+            return tasks.sorted { $0.rawDate > $1.rawDate }
+
+        default:
+            return tasks
+        }
+    }
+
+    
+
+    func loadCarAndTasks() async {
+        if !hasLoaded {
+            isLoading = true
+        }
+
+        do {
+            let cars = try await DataService.shared.fetchAll()
+
+            hasCars = !cars.isEmpty
+            vehicleNames = cars.map { $0.name.isEmpty ? $0.model : $0.name }
+            fetchMaintenanceTasks(for: cars)
+        } catch {
+            print("Erro ao carregar veículos: \(error)")
+            hasCars = false
+            vehicleNames = []
+            fetchMaintenanceTasks(for: [])
+        }
+
+     
+        customTasks.forEach { MaintenanceReminderService.schedule(customTask: $0) }
+
+        hasLoaded = true
+    }
+
+    func fetchMaintenanceTasks(for cars: [CarModel]) {
+        guard !cars.isEmpty else {
+            tasks = []
+            isLoading = false
+            MaintenanceReminderService.syncAutoTasks(validKeys: [])
+            return
+        }
+
         let calendar = Calendar.current
         let today = Date()
-        let title = normalizedTaskTitle
 
-        lastCheckDate = today
-
-        if title.contains("radiador")
-            || title.contains("agua")
-            || title.contains("pneu")
-            || title.contains("calibrar")
-            || title.contains("bateria")
-            || title.contains("freio") {
-
-            nextCheckDate = calendar.date(
-                byAdding: .day,
-                value: 15,
-                to: today
-            ) ?? today
-
-        } else if title.contains("oleo") {
-            nextCheckDate = calendar.date(
-                byAdding: .month,
-                value: 6,
-                to: today
-            ) ?? today
-
-        } else {
-            nextCheckDate = calendar.date(
-                byAdding: .month,
-                value: 3,
-                to: today
-            ) ?? today
+        func formatDate(_ date: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .none
+            formatter.locale = Locale(identifier: "pt_BR")
+            return formatter.string(from: date)
         }
-    }
 
-    var body: some View {
-        ZStack {
-            Color("Background")
-                .ignoresSafeArea()
+        
+        let templates: [(title: String, type: TaskType, due: Date)] = [
+            ("Troca de óleo", .oilChange,
+             calendar.date(byAdding: .month, value: 6, to: today) ?? today),
+            ("Verificar a água do radiador", .waterCheck,
+             calendar.date(byAdding: .day, value: 15, to: today) ?? today),
+            ("Verificar pastilhas do freio", .brakeCheck,
+             calendar.date(byAdding: .year, value: 1, to: today) ?? today),
+            ("Testar estado da bateria", .batteryCheck,
+             calendar.date(byAdding: .month, value: 8, to: today) ?? today),
+            ("Calibrar pneus", .tireCalibration,
+             calendar.date(byAdding: .day, value: 15, to: today) ?? today)
+        ]
 
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 20) {
-                    detailsSection
+        var generatedTasks: [TaskItemModel] = []
+        var validKeys = Set<String>()
 
-                    if customTask == nil && !tutorialsList.isEmpty {
-                        tutorialsSection
-                    }
+        for car in cars {
+            let vehicleName = car.name.isEmpty ? car.model : car.name
 
-                    finishButton
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 10)
-                .padding(.bottom, 30)
-            }
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar(.hidden, for: .tabBar)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                HStack {
-                    Text(taskTitle)
-                        .font(.system(size: 24, weight: .semibold))
-                        .foregroundColor(.primary)
+            for template in templates {
+                let key = "task.\(car.id.uuidString).\(template.type.rawValue)"
+                validKeys.insert(key)
 
-                    Spacer()
-                }
-            }
+                let due = MaintenanceReminderService.dueDate(
+                    for: key,
+                    default: template.due,
+                    title: template.title,
+                    vehicle: vehicleName
+                )
 
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showEditSheet = true
-                } label: {
-                    Text("Editar")
-                        .font(.system(size: 17, weight: .semibold))
-                }
-            }
-        }
-        .sheet(isPresented: $showEditSheet) {
-            NavigationStack {
-                if let custom = currentCustomTask {
-                    AddCustomTaskView(taskToEdit: custom) { updatedTask in
-                        currentCustomTask = updatedTask
-                        onUpdateCustomTask?(updatedTask)
-                    }
-                } else {
-                    EditMaintenanceSheet(
-                        taskTitle: taskTitle,
-                        subtitleList: subtitleLabel,
-                        optionsList: optionsList,
-                        selectedOption: $selectedOption,
-                        lastCheckDate: $lastCheckDate,
-                        nextCheckDate: $nextCheckDate,
-                        onSave: {
-                            showEditSheet = false
-                        },
-                        onDismiss: {
-                            showEditSheet = false
-                        }
+                generatedTasks.append(
+                    TaskItemModel(
+                        key: key,
+                        title: template.title,
+                        vehicle: vehicleName,
+                        dueDate: "Próxima: \(formatDate(due))",
+                        rawDate: due,
+                        taskType: template.type
                     )
-                }
-            }
-        }
-    }
-
-    private var detailsSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Detalhes da Tarefa")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.primary)
-
-            VStack(alignment: .leading, spacing: 16) {
-                if let custom = currentCustomTask {
-                    HStack {
-                        Text("Veículo")
-                            .foregroundColor(.primary)
-
-                        Spacer()
-
-                        Text(custom.vehicleName)
-                            .fontWeight(.medium)
-                            .foregroundColor(.secondary)
-                    }
-
-                    Divider()
-
-                    HStack {
-                        Text("Alarme")
-                            .foregroundColor(.primary)
-
-                        Spacer()
-
-                        Text(
-                            custom.alarmDate.formatted(
-                                date: .abbreviated,
-                                time: .shortened
-                            )
-                        )
-                        .fontWeight(.medium)
-                        .foregroundColor(.secondary)
-                    }
-
-                    Divider()
-
-                    HStack {
-                        Text("Frequência")
-                            .foregroundColor(.primary)
-
-                        Spacer()
-
-                        Text(custom.frequency)
-                            .fontWeight(.medium)
-                            .foregroundColor(.secondary)
-                    }
-                } else {
-                    HStack {
-                        Text(subtitleLabel)
-                            .font(.system(size: 16))
-                            .foregroundColor(.primary)
-
-                        Spacer()
-
-                        Text(selectedOption)
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
-
-                    Divider()
-
-                    HStack {
-                        Text("Última checagem")
-                            .font(.system(size: 16))
-                            .foregroundColor(.primary)
-
-                        Spacer()
-
-                        Text(
-                            lastCheckDate.formatted(
-                                date: .abbreviated,
-                                time: .omitted
-                            )
-                        )
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.secondary)
-                    }
-
-                    Divider()
-
-                    HStack {
-                        Text("Próxima checagem")
-                            .font(.system(size: 16))
-                            .foregroundColor(.primary)
-
-                        Spacer()
-
-                        Text(
-                            nextCheckDate.formatted(
-                                date: .abbreviated,
-                                time: .omitted
-                            )
-                        )
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.secondary)
-                    }
-                }
-            }
-            .padding(13)
-            .background(Color(.systemGray).opacity(0.2))
-            .cornerRadius(20)
-
-            if let custom = currentCustomTask, !custom.note.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Anotação")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.primary)
-
-                    Text(custom.note)
-                        .font(.system(size: 15))
-                        .foregroundColor(.secondary)
-                }
-                .padding(14)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(.systemGray6))
-                .cornerRadius(16)
-            } else if customTask == nil {
-                Text(
-                    "• A frequência é uma estimativa. " +
-                    "É recomendado verificar conforme a utilização do veículo."
                 )
-                .font(.system(size: 15))
-                .foregroundColor(.secondary)
-                .padding(.horizontal, 4)
             }
         }
-        .padding(20)
-        .glassEffect(.regular, in: .rect(cornerRadius: 16))
-        .cornerRadius(20)
-        .overlay {
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-        }
-    }
 
-    private var tutorialsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Tutoriais")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.primary)
-
-            Text("Aprenda a realizar a manutenção de forma segura.")
-                .font(.system(size: 14))
-                .foregroundColor(.secondary)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    ForEach(tutorialsList) { tutorial in
-                        tutorialCard(for: tutorial)
-                    }
-                }
-                .padding(.vertical, 4)
-            }
-        }
-        .padding(20)
-        .glassEffect(.regular, in: .rect(cornerRadius: 16))
-        .cornerRadius(20)
-        .overlay {
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-        }
-    }
-
-    @ViewBuilder
-    private func tutorialCard(for tutorial: TutorialItem) -> some View {
-        Button {
-            coordinator.push(.tutorial(tutorial.taskType))
-        } label: {
-            VStack(alignment: .leading, spacing: 0) {
-                TutorialImageView(
-                    image: tutorial.taskType.tutorialData.introImage
-                )
-                .frame(width: 190, height: 100)
-                .clipped()
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(tutorial.title)
-                        .font(.system(size: 16))
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
-
-                    Text("\(tutorial.duration) • \(tutorial.level)")
-                        .font(.system(size: 14))
-                        .foregroundColor(.secondary)
-                }
-                .padding(14)
-            }
-            .frame(width: 190)
-            .glassEffect(.regular, in: .rect(cornerRadius: 16))
-            .cornerRadius(16)
-            .overlay {
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-            }
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var finishButton: some View {
-        Button {
-            if customTask == nil {
-                completeTask()
-            }
-
-            dismiss()
-        } label: {
-            Text(
-                customTask == nil
-                ? "Tarefa concluída"
-                : "Concluir Visualização"
-            )
-            .font(.system(size: 16, weight: .semibold))
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .metallicBackground()
-            .clipShape(Capsule())
-        }
-        .padding(.top, 90)
+        tasks = generatedTasks
+        isLoading = false
+        MaintenanceReminderService.syncAutoTasks(validKeys: validKeys)
     }
 }
 
-struct EditMaintenanceSheet: View {
-    var taskTitle: String
-    var subtitleList: String
-    var optionsList: [String]
 
-    @Binding var selectedOption: String
-    @Binding var lastCheckDate: Date
-    @Binding var nextCheckDate: Date
+@MainActor
+final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
 
-    var onSave: () -> Void
-    var onDismiss: () -> Void
+    static let shared = NotificationService()
 
-    var body: some View {
-        Form {
-            Section(header: Text("Atualizar Informações")) {
-                Picker(subtitleList, selection: $selectedOption) {
-                    ForEach(optionsList, id: \.self) { option in
-                        Text(option)
-                            .tag(option)
-                    }
-                }
+    private let center = UNUserNotificationCenter.current()
 
-                DatePicker(
-                    "Última checagem",
-                    selection: $lastCheckDate,
-                    displayedComponents: .date
-                )
+    private override init() {
+        super.init()
+        center.delegate = self
+    }
 
-                DatePicker(
-                    "Próxima checagem",
-                    selection: $nextCheckDate,
-                    displayedComponents: .date
-                )
-            }
+    func requestAuthorization() async {
+        do {
+            _ = try await center.requestAuthorization(options: [.alert, .sound, .badge])
+        } catch {
+            print("Erro ao pedir permissão de notificação: \(error)")
         }
-        .navigationTitle("Editar \(taskTitle)")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            CustomSheetHeader(
-                onDismiss: onDismiss,
-                onSave: onSave,
-                isSaveDisabled: false
+    }
+
+    func send(id: String, title: String, body: String) async {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
+
+        do {
+            try await center.add(request)
+        } catch {
+            print("Erro ao agendar notificação: \(error)")
+        }
+    }
+
+    func schedule(
+        id: String,
+        title: String,
+        body: String,
+        components: DateComponents,
+        repeats: Bool
+    ) async {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: repeats)
+        let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
+
+        do {
+            try await center.add(request)
+        } catch {
+            print("Erro ao agendar notificação: \(error)")
+        }
+    }
+
+    func cancel(ids: [String]) {
+        center.removePendingNotificationRequests(withIdentifiers: ids)
+    }
+
+    func removeStale(prefix: String, keeping valid: Set<String>) async {
+        let pending = await center.pendingNotificationRequests()
+        let stale = pending
+            .map(\.identifier)
+            .filter { $0.hasPrefix(prefix) && !valid.contains($0) }
+        center.removePendingNotificationRequests(withIdentifiers: stale)
+    }
+
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .list, .sound]
+    }
+}
+
+
+enum MaintenanceReminderService {
+
+    private static let autoPrefix = "task."
+
+    
+    nonisolated static func dueDate(
+        for key: String,
+        default defaultDate: Date,
+        title: String,
+        vehicle: String
+    ) -> Date {
+        let defaults = UserDefaults.standard
+        let storageKey = "due.\(key)"
+
+        let due: Date
+        if let stored = defaults.object(forKey: storageKey) as? Date {
+            due = stored
+        } else {
+            due = Calendar.current.date(
+                bySettingHour: 9, minute: 0, second: 0, of: defaultDate
+            ) ?? defaultDate
+            defaults.set(due, forKey: storageKey)
+        }
+
+        scheduleAuto(key: key, title: title, vehicle: vehicle, date: due)
+        return due
+    }
+
+    nonisolated static func storedDueDate(for key: String) -> Date? {
+        UserDefaults.standard.object(forKey: "due.\(key)") as? Date
+    }
+
+    nonisolated static func setDueDate(_ date: Date, key: String, title: String, vehicle: String) {
+        UserDefaults.standard.set(date, forKey: "due.\(key)")
+        scheduleAuto(key: key, title: title, vehicle: vehicle, date: date)
+    }
+
+    nonisolated private static func scheduleAuto(key: String, title: String, vehicle: String, date: Date) {
+        guard date > Date() else { return }
+
+        let components = Calendar.current.dateComponents(
+            [.year, .month, .day, .hour, .minute], from: date
+        )
+
+        Task { @MainActor in
+            await NotificationService.shared.schedule(
+                id: key,
+                title: "\(title) · \(vehicle)",
+                body: "Está na hora desta manutenção. Abra o FluiCar para ver o tutorial.",
+                components: components,
+                repeats: false
             )
+        }
+    }
+
+    nonisolated static func syncAutoTasks(validKeys: Set<String>) {
+        Task { @MainActor in
+            await NotificationService.shared.removeStale(prefix: autoPrefix, keeping: validKeys)
+        }
+    }
+
+
+    nonisolated static func schedule(customTask task: CustomTaskModel) {
+        let calendar = Calendar.current
+        let date = task.alarmDate
+
+        let components: DateComponents
+        let repeats: Bool
+
+        switch task.frequency {
+        case "Diária":
+            components = calendar.dateComponents([.hour, .minute], from: date)
+            repeats = true
+        case "Semanal":
+            components = calendar.dateComponents([.weekday, .hour, .minute], from: date)
+            repeats = true
+        case "Mensal":
+            components = calendar.dateComponents([.day, .hour, .minute], from: date)
+            repeats = true
+        case "Anual":
+            components = calendar.dateComponents([.month, .day, .hour, .minute], from: date)
+            repeats = true
+        default:
+            guard date > Date() else {
+                cancel(customTaskID: task.id)
+                return
+            }
+            components = calendar.dateComponents(
+                [.year, .month, .day, .hour, .minute], from: date
+            )
+            repeats = false
+        }
+
+        let body = task.note.isEmpty
+            ? "\(task.vehicleName): está na hora desta manutenção."
+            : "\(task.vehicleName): \(task.note)"
+
+        Task { @MainActor in
+            await NotificationService.shared.schedule(
+                id: "custom.\(task.id.uuidString)",
+                title: task.title,
+                body: body,
+                components: components,
+                repeats: repeats
+            )
+        }
+    }
+
+    nonisolated static func cancel(customTaskID id: UUID) {
+        Task { @MainActor in
+            NotificationService.shared.cancel(ids: ["custom.\(id.uuidString)"])
         }
     }
 }
 
+
+struct MileageRule {
+    let key: String
+    let title: String
+    let interval: Int
+    let warnBefore: Int
+}
+
+@MainActor
+enum MileageAlertService {
+
+    static let rules: [MileageRule] = [
+        MileageRule(key: "oil", title: "Troca de óleo", interval: 10_000, warnBefore: 500),
+        MileageRule(key: "tires", title: "Alinhamento e balanceamento", interval: 10_000, warnBefore: 500),
+        MileageRule(key: "brakes", title: "Revisão das pastilhas de freio", interval: 20_000, warnBefore: 1_000)
+    ]
+
+    static func check(car: CarModel) async {
+        guard let km = Int(car.kilometers.filter { $0.isNumber }), km > 0 else { return }
+
+        let defaults = UserDefaults.standard
+        let carName = car.name.isEmpty ? car.model : car.name
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.locale = Locale(identifier: "pt_BR")
+
+        func formatted(_ value: Int) -> String {
+            formatter.string(from: NSNumber(value: value)) ?? "\(value)"
+        }
+
+        for rule in rules {
+            let reachedKey = "km.\(car.id.uuidString).\(rule.key).reached"
+            let warnedKey = "km.\(car.id.uuidString).\(rule.key).warned"
+
+            let passed = (km / rule.interval) * rule.interval
+            let next = passed + rule.interval
+            if let handled = defaults.object(forKey: reachedKey) as? Int {
+                if passed > handled && passed > 0 {
+                    await NotificationService.shared.send(
+                        id: "km-\(car.id.uuidString)-\(rule.key)-reached-\(passed)",
+                        title: "\(rule.title) · \(carName)",
+                        body: "Seu carro passou de \(formatted(passed)) km. Está na hora de fazer: \(rule.title.lowercased())."
+                    )
+                    defaults.set(passed, forKey: reachedKey)
+                } else if passed < handled {
+                    defaults.set(passed, forKey: reachedKey)
+                }
+            } else {
+                defaults.set(passed, forKey: reachedKey)
+            }
+
+
+            let remaining = next - km
+            if remaining <= rule.warnBefore, defaults.integer(forKey: warnedKey) != next {
+                await NotificationService.shared.send(
+                    id: "km-\(car.id.uuidString)-\(rule.key)-warn-\(next)",
+                    title: "\(rule.title) · \(carName)",
+                    body: "Faltam cerca de \(formatted(remaining)) km para \(rule.title.lowercased()) (\(formatted(next)) km)."
+                )
+                defaults.set(next, forKey: warnedKey)
+            }
+        }
+    }
+}
 #Preview {
     NavigationStack {
         MaintenanceDetailView(
             taskTitle: "Troca de óleo",
-            vehicleName: "Honda Civic",
-            dueDateText: "Próxima: 10 de outubro",
+            vehicleName: "Meu Carro",
+            dueDateText: "Próxima: 10/11/2026",
             taskType: .oilChange
         )
-        .environment(CoordinatorCore())
     }
+    .environment(CoordinatorCore()) 
 }
+

@@ -1,181 +1,632 @@
 //
-//  MaintenanceViewModel.swift
+//  MaintenanceDetailView.swift
 //  FluiCar
 //
 //  Created by Isabella Avelina on 29/09/26.
 //
 
-import Foundation
 import SwiftUI
-import Observation
 
-@MainActor
-@Observable
-class MaintenanceViewModel {
-    var tasks: [TaskItemModel] = []
-    var customTasks: [CustomTaskModel] = []
-    var isLoading = false
-    var hasLoaded = false
-    var hasCars = false
+struct TutorialItem: Identifiable {
+    let id = UUID()
+    let title: String
+    let duration: String
+    let level: String
+    let taskType: TaskType
+}
 
-    struct TaskItemModel: Identifiable {
-        let id = UUID()
-        let title: String
-        let vehicle: String
-        let dueDate: String
-        let rawDate: Date
-        let taskType: TaskType
-    }
+struct MaintenanceDetailView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(CoordinatorCore.self) private var coordinator
 
-    // MARK: - Tarefas personalizadas
+    var taskTitle: String
+    var vehicleName: String
+    var dueDateText: String
+    var taskType: TaskType?
+    var taskKey: String?
+    var customTask: CustomTaskModel?
+    var availableVehicles: [String] = []
+    var onUpdateCustomTask: ((CustomTaskModel) -> Void)?
 
-    func addCustomTask(_ task: CustomTaskModel) {
-        if let index = customTasks.firstIndex(where: { $0.id == task.id }) {
-            customTasks[index] = task
-        } else {
-            customTasks.append(task)
+    @State private var selectedOption: String = "Padrão"
+    @State private var lastCheckDate = Date()
+    @State private var nextCheckDate: Date =
+        Calendar.current.date(byAdding: .month, value: 3, to: Date()) ?? Date()
+
+    @State private var currentCustomTask: CustomTaskModel?
+    @State private var showEditSheet = false
+
+    init(
+        taskTitle: String,
+        vehicleName: String,
+        dueDateText: String,
+        taskType: TaskType? = nil,
+        taskKey: String? = nil,
+        customTask: CustomTaskModel? = nil,
+        availableVehicles: [String] = [],
+        onUpdateCustomTask: ((CustomTaskModel) -> Void)? = nil
+    ) {
+        self.taskTitle = taskTitle
+        self.vehicleName = vehicleName
+        self.dueDateText = dueDateText
+        self.taskType = taskType
+        self.taskKey = taskKey
+        self.customTask = customTask
+        self.availableVehicles = availableVehicles
+        self.onUpdateCustomTask = onUpdateCustomTask
+        _currentCustomTask = State(initialValue: customTask)
+
+        // Mostra a data de vencimento que já está salva para esta tarefa
+        if let taskKey, let stored = MaintenanceReminderService.storedDueDate(for: taskKey) {
+            _nextCheckDate = State(initialValue: stored)
         }
     }
 
-    func deleteCustomTask(at offsets: IndexSet) {
-        customTasks.remove(atOffsets: offsets)
+    private var normalizedTaskTitle: String {
+        taskTitle.folding(
+            options: [.diacriticInsensitive, .caseInsensitive],
+            locale: .current
+        )
     }
 
-    // MARK: - Filtros
+    private var optionsList: [String] {
+        let title = normalizedTaskTitle
 
-    func filteredTasks(for filter: String) -> [TaskItemModel] {
-        switch filter {
-        case "Prazo para vencer":
-            return tasks.sorted { $0.rawDate < $1.rawDate }
+        if title.contains("oleo") {
+            return [
+                "Mineral",
+                "Sintético",
+                "Semi-sintético",
+                "Mineral",
+                "0W16",
+                "0W20",
+                "5W30",
+                "5W40",
+                "10W30",
+                "10W40",
+                "15W40",
+                "20W50",
+                "25W60"
 
-        case "Manutenção recente":
-            return tasks.sorted { $0.rawDate > $1.rawDate }
-
-        default:
-            return tasks
+            ]
         }
+
+        if title.contains("radiador") || title.contains("agua") {
+            return [
+                "Água Desmineralizada + aditivada",
+                "Água aditivada",
+                "Mistura simples",
+                "Apenas Água Desmineralizada",
+                "Água mineral"
+            ]
+        }
+
+        if title.contains("pneu") {
+            return [
+                "Calibragem Padrão (30 PSI)",
+                "Calibragem com Carga (32+ PSI)"
+            ]
+        }
+
+        if title.contains("bateria") {
+            return [
+                "Preventica",
+                "Corretiva",
+                "Preditiva"
+            ]
+        }
+
+        if title.contains("freio") {
+            return [
+                "Preventica",
+                "Corretiva",
+                "Preditiva"
+            ]
+        }
+
+        return [
+            "Verificação Padrão",
+            "Substituição Completa"
+        ]
     }
 
-    // MARK: - Carregamento
+    private var subtitleLabel: String {
+        let title = normalizedTaskTitle
 
-    func loadCarAndTasks() async {
-        if !hasLoaded {
-            isLoading = true
+        if title.contains("oleo") {
+            return "Tipo de óleo"
         }
 
-        do {
-            let cars = try await DataService.shared.fetchAll()
-
-            hasCars = !cars.isEmpty
-            fetchMaintenanceTasks(for: cars)
-        } catch {
-            print("Erro ao carregar veículos: \(error)")
-            hasCars = false
-            fetchMaintenanceTasks(for: [])
+        if title.contains("radiador") || title.contains("agua") {
+            return "Fluido utilizado"
         }
 
-        hasLoaded = true
+        if title.contains("pneu") {
+            return "Tipo de calibragem"
+        }
+
+        if title.contains("bateria") {
+            return "Estado da bateria"
+        }
+
+        if title.contains("freio") {
+            return "Estado dos freios"
+        }
+
+        return "Especificação"
     }
 
-    func fetchMaintenanceTasks(for cars: [CarModel]) {
-        guard !cars.isEmpty else {
-            tasks = []
-            isLoading = false
-            return
+    private var tutorialsList: [TutorialItem] {
+        if let taskType {
+            switch taskType {
+            case .oilChange:
+                return [
+                    TutorialItem(
+                        title: "Troca completa",
+                        duration: TaskType.oilChange.duration,
+                        level: TaskType.oilChange.level,
+                        taskType: .oilChange
+                    ),
+                    TutorialItem(
+                        title: "Verificação do nível",
+                        duration: TaskType.oilCheck.duration,
+                        level: TaskType.oilCheck.level,
+                        taskType: .oilCheck
+                    )
+                ]
+
+            case .oilCheck:
+                return [
+                    TutorialItem(
+                        title: "Verificação do nível",
+                        duration: TaskType.oilCheck.duration,
+                        level: TaskType.oilCheck.level,
+                        taskType: .oilCheck
+                    ),
+                    TutorialItem(
+                        title: "Troca completa",
+                        duration: TaskType.oilChange.duration,
+                        level: TaskType.oilChange.level,
+                        taskType: .oilChange
+                    )
+                ]
+
+            case .waterCheck:
+                return [
+                    TutorialItem(
+                        title: "Verificar a água do radiador",
+                        duration: TaskType.waterCheck.duration,
+                        level: TaskType.waterCheck.level,
+                        taskType: .waterCheck
+                    )
+                ]
+
+            case .brakeCheck:
+                return [
+                    TutorialItem(
+                        title: "Verificar os freios",
+                        duration: TaskType.brakeCheck.duration,
+                        level: TaskType.brakeCheck.level,
+                        taskType: .brakeCheck
+                    )
+                ]
+
+            case .tireCalibration:
+                return [
+                    TutorialItem(
+                        title: "Calibragem correta",
+                        duration: TaskType.tireCalibration.duration,
+                        level: TaskType.tireCalibration.level,
+                        taskType: .tireCalibration
+                    )
+                ]
+
+            case .batteryCheck:
+                return [
+                    TutorialItem(
+                        title: "Verificar a bateria",
+                        duration: TaskType.batteryCheck.duration,
+                        level: TaskType.batteryCheck.level,
+                        taskType: .batteryCheck
+                    )
+                ]
+            }
         }
 
+        return []
+    }
+
+    private func completeTask() {
         let calendar = Calendar.current
         let today = Date()
+        let title = normalizedTaskTitle
 
-        func formatDate(_ date: Date) -> String {
-            let formatter = DateFormatter()
-            formatter.dateStyle = .medium
-            formatter.timeStyle = .none
-            formatter.locale = Locale(identifier: "pt_BR")
-            return formatter.string(from: date)
-        }
+        lastCheckDate = today
 
-        var generatedTasks: [TaskItemModel] = []
+        if title.contains("radiador")
+            || title.contains("agua")
+            || title.contains("pneu")
+            || title.contains("calibrar")
+            || title.contains("bateria")
+            || title.contains("freio") {
 
-        for car in cars {
-            let vehicleName = car.name.isEmpty ? car.model : car.name
+            nextCheckDate = calendar.date(
+                byAdding: .day,
+                value: 15,
+                to: today
+            ) ?? today
 
-            let oilDate = calendar.date(
+        } else if title.contains("oleo") {
+            nextCheckDate = calendar.date(
                 byAdding: .month,
                 value: 6,
                 to: today
             ) ?? today
 
-            let waterDate = calendar.date(
-                byAdding: .day,
-                value: 15,
-                to: today
-            ) ?? today
-
-            let brakeDate = calendar.date(
-                byAdding: .year,
-                value: 1,
-                to: today
-            ) ?? today
-
-            let batteryDate = calendar.date(
+        } else {
+            nextCheckDate = calendar.date(
                 byAdding: .month,
-                value: 8,
+                value: 3,
                 to: today
             ) ?? today
-
-            let tireDate = calendar.date(
-                byAdding: .day,
-                value: 15,
-                to: today
-            ) ?? today
-
-            let carTasks: [TaskItemModel] = [
-                TaskItemModel(
-                    title: "Troca de óleo",
-                    vehicle: vehicleName,
-                    dueDate: "Próxima: \(formatDate(oilDate))",
-                    rawDate: oilDate,
-                    taskType: .oilChange
-                ),
-
-                TaskItemModel(
-                    title: "Verificar a água do radiador",
-                    vehicle: vehicleName,
-                    dueDate: "Próxima: \(formatDate(waterDate))",
-                    rawDate: waterDate,
-                    taskType: .waterCheck
-                ),
-
-                TaskItemModel(
-                    title: "Verificar pastilhas do freio",
-                    vehicle: vehicleName,
-                    dueDate: "Próxima: \(formatDate(brakeDate))",
-                    rawDate: brakeDate,
-                    taskType: .brakeCheck
-                ),
-
-                TaskItemModel(
-                    title: "Testar estado da bateria",
-                    vehicle: vehicleName,
-                    dueDate: "Próxima: \(formatDate(batteryDate))",
-                    rawDate: batteryDate,
-                    taskType: .batteryCheck
-                ),
-
-                TaskItemModel(
-                    title: "Calibrar pneus",
-                    vehicle: vehicleName,
-                    dueDate: "Próxima: \(formatDate(tireDate))",
-                    rawDate: tireDate,
-                    taskType: .tireCalibration
-                )
-            ]
-
-            generatedTasks.append(contentsOf: carTasks)
         }
 
-        tasks = generatedTasks
-        isLoading = false
+        saveNextCheckDate()
+    }
+
+    /// Salva a próxima checagem e reagenda a notificação.
+    private func saveNextCheckDate() {
+        guard let taskKey else { return }
+
+        MaintenanceReminderService.setDueDate(
+            nextCheckDate,
+            key: taskKey,
+            title: taskTitle,
+            vehicle: vehicleName
+        )
+    }
+
+    var body: some View {
+        ZStack {
+            Color("Background")
+                .ignoresSafeArea()
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 20) {
+                    detailsSection
+
+                    if customTask == nil && !tutorialsList.isEmpty {
+                        tutorialsSection
+                    }
+
+                    finishButton
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
+                .padding(.bottom, 30)
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                HStack {
+                    Text(taskTitle)
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundColor(.primary)
+
+                    Spacer()
+                }
+            }
+
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showEditSheet = true
+                } label: {
+                    Text("Editar")
+                        .font(.system(size: 17, weight: .semibold))
+                }
+            }
+        }
+        .sheet(isPresented: $showEditSheet) {
+            NavigationStack {
+                if let custom = currentCustomTask {
+                    AddCustomTaskView(vehicles: availableVehicles, taskToEdit: custom) { updatedTask in
+                        currentCustomTask = updatedTask
+                        onUpdateCustomTask?(updatedTask)
+                    }
+                } else {
+                    EditMaintenanceSheet(
+                        taskTitle: taskTitle,
+                        subtitleList: subtitleLabel,
+                        optionsList: optionsList,
+                        selectedOption: $selectedOption,
+                        lastCheckDate: $lastCheckDate,
+                        nextCheckDate: $nextCheckDate,
+                        onSave: {
+                            saveNextCheckDate()
+                            showEditSheet = false
+                        },
+                        onDismiss: {
+                            showEditSheet = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    private var detailsSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Detalhes da Tarefa")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.primary)
+
+            VStack(alignment: .leading, spacing: 16) {
+                if let custom = currentCustomTask {
+                    HStack {
+                        Text("Veículo")
+                            .foregroundColor(.primary)
+
+                        Spacer()
+
+                        Text(custom.vehicleName)
+                            .fontWeight(.medium)
+                            .foregroundColor(.secondary)
+                    }
+
+                    Divider()
+
+                    HStack {
+                        Text("Alarme")
+                            .foregroundColor(.primary)
+
+                        Spacer()
+
+                        Text(
+                            custom.alarmDate.formatted(
+                                date: .abbreviated,
+                                time: .shortened
+                            )
+                        )
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondary)
+                    }
+
+                    Divider()
+
+                    HStack {
+                        Text("Frequência")
+                            .foregroundColor(.primary)
+
+                        Spacer()
+
+                        Text(custom.frequency)
+                            .fontWeight(.medium)
+                            .foregroundColor(.secondary)
+                    }
+                } else {
+                    HStack {
+                        Text(subtitleLabel)
+                            .font(.system(size: 16))
+                            .foregroundColor(.primary)
+
+                        Spacer()
+
+                        Text(selectedOption)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
+
+                    Divider()
+
+                    HStack {
+                        Text("Última checagem")
+                            .font(.system(size: 16))
+                            .foregroundColor(.primary)
+
+                        Spacer()
+
+                        Text(
+                            lastCheckDate.formatted(
+                                date: .abbreviated,
+                                time: .omitted
+                            )
+                        )
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.secondary)
+                    }
+
+                    Divider()
+
+                    HStack {
+                        Text("Próxima checagem")
+                            .font(.system(size: 16))
+                            .foregroundColor(.primary)
+
+                        Spacer()
+
+                        Text(
+                            nextCheckDate.formatted(
+                                date: .abbreviated,
+                                time: .omitted
+                            )
+                        )
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .padding(13)
+            .background(Color(.systemGray).opacity(0.2))
+            .cornerRadius(20)
+
+            if let custom = currentCustomTask, !custom.note.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Anotação")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.primary)
+
+                    Text(custom.note)
+                        .font(.system(size: 15))
+                        .foregroundColor(.secondary)
+                }
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(.systemGray6))
+                .cornerRadius(16)
+            } else if customTask == nil {
+                Text(
+                    "• A frequência é uma estimativa. " +
+                    "É recomendado verificar conforme a utilização do veículo."
+                )
+                .font(.system(size: 15))
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 4)
+            }
+        }
+        .padding(20)
+        .glassEffect(.regular, in: .rect(cornerRadius: 16))
+        .cornerRadius(20)
+        .overlay {
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+        }
+    }
+
+    private var tutorialsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Tutoriais")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.primary)
+
+            Text("Aprenda a realizar a manutenção de forma segura.")
+                .font(.system(size: 14))
+                .foregroundColor(.secondary)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(tutorialsList) { tutorial in
+                        tutorialCard(for: tutorial)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+        }
+        .padding(20)
+        .glassEffect(.regular, in: .rect(cornerRadius: 16))
+        .cornerRadius(20)
+        .overlay {
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+        }
+    }
+
+    @ViewBuilder
+    private func tutorialCard(for tutorial: TutorialItem) -> some View {
+        Button {
+            coordinator.push(.tutorial(tutorial.taskType))
+        } label: {
+            VStack(alignment: .leading, spacing: 0) {
+                TutorialImageView(
+                    image: tutorial.taskType.tutorialData.introImage
+                )
+                .frame(width: 190, height: 100)
+                .clipped()
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(tutorial.title)
+                        .font(.system(size: 16))
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+
+                    Text("\(tutorial.duration) • \(tutorial.level)")
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                }
+                .padding(14)
+            }
+            .frame(width: 190)
+            .glassEffect(.regular, in: .rect(cornerRadius: 16))
+            .cornerRadius(16)
+            .overlay {
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var finishButton: some View {
+        Button {
+            if customTask == nil {
+                completeTask()
+            }
+
+            dismiss()
+        } label: {
+            Text(
+                customTask == nil
+                ? "Tarefa concluída"
+                : "Tarefa concluída"
+            )
+            .font(.system(size: 16, weight: .semibold))
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .metallicBackground()
+            .clipShape(Capsule())
+        }
+        .padding(.top, 50)
     }
 }
+
+struct EditMaintenanceSheet: View {
+    var taskTitle: String
+    var subtitleList: String
+    var optionsList: [String]
+
+    @Binding var selectedOption: String
+    @Binding var lastCheckDate: Date
+    @Binding var nextCheckDate: Date
+
+    var onSave: () -> Void
+    var onDismiss: () -> Void
+
+    var body: some View {
+        Form {
+            Section(header: Text("Atualizar Informações")) {
+                Picker(subtitleList, selection: $selectedOption) {
+                    ForEach(optionsList, id: \.self) { option in
+                        Text(option)
+                            .tag(option)
+                    }
+                }
+
+                DatePicker(
+                    "Última checagem",
+                    selection: $lastCheckDate,
+                    displayedComponents: .date
+                )
+
+                DatePicker(
+                    "Próxima checagem",
+                    selection: $nextCheckDate,
+                    displayedComponents: .date
+                )
+            }
+        }
+        .navigationTitle("Editar \(taskTitle)")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            CustomSheetHeader(
+                onDismiss: onDismiss,
+                onSave: onSave,
+                isSaveDisabled: false
+            )
+        }
+    }
+}
+
+

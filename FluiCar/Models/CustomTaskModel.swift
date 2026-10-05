@@ -2,7 +2,7 @@
 //  CustomTaskModel.swift
 //  FluiCar
 //
-//  Created by Assistente on 01/10/26.
+//  Created by Isabella Avelina on 01/10/26.
 //
 
 import Foundation
