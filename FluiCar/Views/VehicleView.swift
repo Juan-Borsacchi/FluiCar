@@ -41,15 +41,9 @@ struct VehicleView: View {
         }
         .navigationTitle(viewModel.car.name)
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
+  
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    coordinator.popToRoot()
-                } label: {
-                    Label("Automóveis", systemImage: "chevron.left")
-                }
-            }
+            
             
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
@@ -230,12 +224,8 @@ struct VehicleView: View {
         }
         .padding()
         .frame(
-            minWidth: 372,
-            idealWidth: 180,
             maxWidth: .infinity,
-            minHeight: 51,
-            idealHeight: 102,
-            maxHeight: .infinity,
+            minHeight: 51,       
             alignment: .leading
         )
         .background(Color.white)

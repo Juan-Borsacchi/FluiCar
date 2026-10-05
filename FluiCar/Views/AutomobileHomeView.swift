@@ -42,7 +42,7 @@ struct AutomobileHomeView: View {
 
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    coordinator.push(.addVehicle)
+                    coordinator.presentSheet(.addVehicle)
                 } label: {
                     Image(systemName: "plus")
                 }

@@ -12,13 +12,27 @@ import Observation
 class AddVehicleViewModel {
     private let service: any VehicleServiceProtocol
     private let dataBase: any VehicleRepositoryProtocol
-    var carToEdit: CarModel?
+    
+    // 🌟 NOVA VARIÁVEL AQUI PARA DESTRAVAR OS PICKERS:
+    var isInitialLoading = false
+    var isLoading = false
+    
+    var carToEdit: CarModel? {
+        didSet {
+            // Se o carro for injetado depois do init, força o carregamento!
+            if carToEdit != nil {
+                Task {
+                    await loadEditData()
+                }
+            }
+        }
+    }
+    
     var isChangingFipe: Bool = false
     // Arrays para guardar as respostas da API
     var brands: [BrandResponse] = []
     var carModels: [ModelFipeResponse] = []
     var years: [YearResponse] = []
-    
     
     // Variáveis que o usuário selecionou na tela
     var selectedBrandCode: String = ""
@@ -34,15 +48,10 @@ class AddVehicleViewModel {
     }
     
     var carKilometers: String = ""
-    
-    
-    
     var carName: String = ""
     var insurance = false
     var alarm: Date = Date()
     var frequency: FrequencyType = .none
-    
-    var isLoading = false
     
     var fipeInfo: FipeInformationResponse?
     var showPriceAlert = false
@@ -74,6 +83,11 @@ class AddVehicleViewModel {
 
             if let loadedImage = UIImage(data: car.photo) {
                 self.carUIImage = loadedImage
+            }
+            
+            // Força o carregamento no init se o carro já existir
+            Task {
+                await self.loadEditData()
             }
         }
     }
@@ -192,7 +206,7 @@ class AddVehicleViewModel {
                 try await dataBase.update(updatedCar)
                 isLoading = false
                 print("Data updated")
-                return updatedCar // <--- Retorna o carro atualizado
+                return updatedCar
                 
             } else {
                 guard let brandId = Int(selectedBrandCode), let modelId = Int(selectedModelCode) else {
@@ -227,7 +241,7 @@ class AddVehicleViewModel {
                 try await dataBase.save(vehicleToSave)
                 isLoading = false
                 print("Data saved")
-                return vehicleToSave // <--- Retorna o carro recém-criado
+                return vehicleToSave
             }
         } catch {
             print("Error ao buscar FIPE para salvar: \(error)")
@@ -268,28 +282,54 @@ class AddVehicleViewModel {
         }
         return yearName
     }
+    
+    // 🌟 A TUA NOVA FUNÇÃO DE EDIÇÃO ESTÁ AQUI
     func loadEditData() async {
-        guard let car = carToEdit else { return }
-        
-        fetchBrands()
-        guard let savedBrand = brands.first(where: { $0.name == car.brand }) else { return }
-        selectedBrandCode = String(savedBrand.code)
-        
-        fetchModels(brandCode: selectedBrandCode)
-        guard let savedModel = carModels.first(where: { $0.name == car.model }) else { return }
-        selectedModelCode = String(savedModel.code)
-        
-        fetchYears(brandCode: selectedBrandCode, modelCode: selectedModelCode)
-        if let savedYear = years.first(where: {
-            $0.name.contains(car.year.description) || (car.year == 32000 && $0.name.contains("32000"))
-        }) {
-            selectedYearCode = String(savedYear.code)
+        guard let car = carToEdit else {
+            isInitialLoading = false
+            return
         }
+        
+        isLoading = true
+        isInitialLoading = true // Bloqueia o .onChange
+        
+        do {
+            let loadedBrands = try await service.fetchBrands(vehicleType: "cars")
+            self.brands = loadedBrands
+            
+            if let savedBrand = loadedBrands.first(where: { $0.name == car.brand }) {
+                self.selectedBrandCode = String(savedBrand.code)
+                
+                let modelRequest = ModelFipeRequest(vehicleType: "cars", brandId: Int(savedBrand.code)!)
+                let loadedModels = try await service.fetchModels(request: modelRequest)
+                self.carModels = loadedModels
+                
+                if let savedModel = loadedModels.first(where: { $0.name == car.model }) {
+                    self.selectedModelCode = String(savedModel.code)
+                    
+                    let yearRequest = YearRequest(vehicleType: "cars", brandId: Int(savedBrand.code)!, modelId: Int(savedModel.code)!)
+                    let loadedYears = try await service.fetchYears(request: yearRequest)
+                    self.years = loadedYears
+                    
+                    if let savedYear = loadedYears.first(where: {
+                        $0.name.contains(car.year.description) || (car.year == 32000 && $0.name.contains("32000"))
+                    }) {
+                        self.selectedYearCode = String(savedYear.code)
+                    }
+                }
+            }
+        } catch {
+            print("Erro ao carregar dados de edição: \(error)")
+        }
+        
+        isLoading = false
+        // 🌟 IMPORTANTE: Libertamos o Picker!
+        isInitialLoading = false
     }
+    
     func onAppear() async {
-        if carToEdit != nil {
-            await loadEditData()
-        } else if brands.isEmpty {
+        if carToEdit == nil && brands.isEmpty {
+            isInitialLoading = false
             fetchBrands()
         }
     }
