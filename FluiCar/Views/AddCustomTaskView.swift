@@ -2,7 +2,7 @@
 //  AddCustomTaskView.swift
 //  FluiCar
 //
-//  Created by Assistente on 01/10/26.
+//  Created by Isabella Avelina on 01/10/26.
 //
 
 import SwiftUI
@@ -10,25 +10,38 @@ import SwiftUI
 struct AddCustomTaskView: View {
     @Environment(\.dismiss) var dismiss
     
-    // Callbacks para retornar a tarefa criada ou editada
+    var vehicles: [String]
+
     var onSave: (CustomTaskModel) -> Void
     var taskToEdit: CustomTaskModel?
     
-    @State private var selectedVehicle: String = "Meu Carro"
+    @State private var selectedVehicle: String
     @State private var taskTitle: String = ""
     @State private var taskNote: String = ""
     @State private var alarmDate: Date = Date()
     @State private var frequency: String = "Nunca"
     
-    private let vehiclesList = ["Meu Carro", "Batmóvel", "Outro Veículo"]
     private let frequenciesList = ["Nunca", "Diária", "Semanal", "Mensal", "Anual"]
     
-    init(taskToEdit: CustomTaskModel? = nil, onSave: @escaping (CustomTaskModel) -> Void) {
+    private var availableVehicles: [String] {
+        if let name = taskToEdit?.vehicleName, !vehicles.contains(name) {
+            return [name] + vehicles
+        }
+        return vehicles
+    }
+    
+    init(
+        vehicles: [String],
+        taskToEdit: CustomTaskModel? = nil,
+        onSave: @escaping (CustomTaskModel) -> Void
+    ) {
+        self.vehicles = vehicles
         self.taskToEdit = taskToEdit
         self.onSave = onSave
         
+        _selectedVehicle = State(initialValue: taskToEdit?.vehicleName ?? vehicles.first ?? "")
+        
         if let task = taskToEdit {
-            _selectedVehicle = State(initialValue: task.vehicleName)
             _taskTitle = State(initialValue: task.title)
             _taskNote = State(initialValue: task.note)
             _alarmDate = State(initialValue: task.alarmDate)
@@ -38,28 +51,24 @@ struct AddCustomTaskView: View {
     
     var body: some View {
         Form {
-            // Secção de Seleção de Veículo
             Section {
                 Picker("Selecione o Veículo", selection: $selectedVehicle) {
-                    ForEach(vehiclesList, id: \.self) { vehicle in
+                    ForEach(availableVehicles, id: \.self) { vehicle in
                         Text(vehicle).tag(vehicle)
                     }
                 }
                 .pickerStyle(.menu)
             }
             
-            // Título da Tarefa
             Section(header: Text("Titulo da Tarefa")) {
                 TextField("Digite aqui o titulo da tarefa", text: $taskTitle)
             }
             
-            // Anotação / Conteúdo
             Section(header: Text("Anotação")) {
                 TextEditor(text: $taskNote)
                     .frame(height: 100)
             }
             
-            // Lembrete (Alarme e Frequência)
             Section(header: Text("Lembrete")) {
                 DatePicker("Alarme", selection: $alarmDate, displayedComponents: [.date, .hourAndMinute])
                 

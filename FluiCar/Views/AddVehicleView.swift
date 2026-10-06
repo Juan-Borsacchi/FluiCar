@@ -94,39 +94,43 @@ struct AddVehicleView: View {
     }
     
     private var pickersSection: some View {
-        Section {
-            SearchablePicker(
-                title: "Marca",
-                selection: $viewModel.selectedBrandCode,
-                items: viewModel.brands.map { (String($0.code), $0.name) },
-                fallbackName: viewModel.carToEdit?.brand
-            )
-            
-            SearchablePicker(
-                title: "Modelo",
-                selection: $viewModel.selectedModelCode,
-                items: viewModel.carModels.map { (String($0.code), $0.name) },
-                fallbackName: viewModel.carToEdit?.model
-            )
-            .disabled(viewModel.carModels.isEmpty && viewModel.carToEdit == nil)
-            
-            SearchablePicker(
-                title: "Ano",
-                selection: $viewModel.selectedYearCode,
-                items: viewModel.years.map { (String($0.code), viewModel.formatPickerYear($0.name)) },
-                fallbackName: viewModel.carToEdit != nil ? viewModel.formatPickerYear(viewModel.carToEdit!.year.description) : nil
-            )
-            .disabled(viewModel.years.isEmpty && viewModel.carToEdit == nil)
-            
-        } footer: {
-            Text("• Você consegue acessar o modelo e o ano do seu veículo na parte traseira dele ou no manual do carro.")
-                .padding(.bottom)
+            Section {
+                SearchablePicker(
+                    title: "Marca",
+                    selection: $viewModel.selectedBrandCode,
+                    items: viewModel.brands.map { (String($0.code), $0.name) },
+                    fallbackName: viewModel.carToEdit?.brand
+                )
+                
+                SearchablePicker(
+                    title: "Modelo",
+                    selection: $viewModel.selectedModelCode,
+                    items: viewModel.carModels.map { (String($0.code), $0.name) },
+                    fallbackName: viewModel.selectedModelCode.isEmpty ? nil : viewModel.carToEdit?.model
+                )
+                .disabled(viewModel.carModels.isEmpty && viewModel.carToEdit == nil)
+                
+                SearchablePicker(
+                    title: "Ano",
+                    selection: $viewModel.selectedYearCode,
+                    items: viewModel.years.map { (String($0.code), viewModel.formatPickerYear($0.name)) },
+                    fallbackName: viewModel.selectedYearCode.isEmpty ? nil : (viewModel.carToEdit != nil ? viewModel.formatPickerYear(viewModel.carToEdit!.year.description) : nil)
+                )
+                .disabled(viewModel.years.isEmpty && viewModel.carToEdit == nil)
+                
+            } footer: {
+                Text("• Você consegue acessar o modelo e o ano do seu veículo na parte traseira dele ou no manual do carro.")
+                    .padding(.bottom)
+            }
         }
-    }
     
     private var nameSection: some View {
         Section(header: Text("Nome do Automóvel").textCase(.none).font(.subheadline).bold()) {
             TextField("Digite o nome do seu Automóvel", text: $viewModel.carName)
+                .onChange(of: viewModel.carName) { _, newValue in
+                    viewModel.carName = viewModel.textLimit(text: newValue, limit: 35)
+                }
+                
         }
     }
     
@@ -214,23 +218,23 @@ struct AddVehicleView: View {
     // MARK: - Handlers
     
     private func handleBrandChange(oldValue: String, newValue: String) {
-            guard !viewModel.isInitialLoading else { return }
-            guard oldValue != newValue else { return }
+            guard oldValue != newValue, !newValue.isEmpty else { return }
             
-            if !newValue.isEmpty {
-                viewModel.carModels = []
-                viewModel.years = []
-                viewModel.selectedModelCode = ""
-                viewModel.selectedYearCode = ""
-                viewModel.fetchModels(brandCode: newValue)
-            }
+            if viewModel.isInitialLoading { return }
+            
+            viewModel.carModels = []
+            viewModel.years = []
+            viewModel.selectedModelCode = ""
+            viewModel.selectedYearCode = ""
+            viewModel.fetchModels(brandCode: newValue)
         }
         
         private func handleModelChange(oldValue: String, newValue: String) {
-            guard !viewModel.isInitialLoading else { return }
-            guard oldValue != newValue else { return }
-            guard !newValue.isEmpty else { return }
+            guard oldValue != newValue, !newValue.isEmpty else { return }
             
+            if viewModel.isInitialLoading { return }
+            
+            // Limpa apenas o Ano quando o Modelo muda
             viewModel.years = []
             viewModel.selectedYearCode = ""
             viewModel.fetchYears(brandCode: viewModel.selectedBrandCode, modelCode: newValue)

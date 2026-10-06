@@ -19,7 +19,7 @@ struct TaskCard: View {
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundColor(.primary) // Adapta-se automaticamente (preto no claro, branco no escuro)
                 
-            Text("Veículo: \(vehicle)")
+            Text("Automóvel: \(vehicle)")
                 .font(.system(size: 13))
                 .foregroundColor(.secondary) // Cinzento adaptativo
             

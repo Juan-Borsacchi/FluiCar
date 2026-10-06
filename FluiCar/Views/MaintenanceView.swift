@@ -40,7 +40,8 @@ struct MaintenanceView: View {
                                         taskTitle: task.title,
                                         vehicleName: task.vehicle,
                                         dueDateText: task.dueDate,
-                                        taskType: task.taskType
+                                        taskType: task.taskType,
+                                        taskKey: task.key
                                     )
                                 } label: {
                                     EmptyView()
@@ -65,7 +66,8 @@ struct MaintenanceView: View {
                                         taskTitle: customTask.title,
                                         vehicleName: customTask.vehicleName,
                                         dueDateText: customTask.alarmDate.formatted(date: .abbreviated, time: .shortened),
-                                        customTask: customTask
+                                        customTask: customTask,
+                                        availableVehicles: viewModel.vehicleNames
                                     ) { updatedTask in
                                         viewModel.addCustomTask(updatedTask)
                                     }
@@ -127,7 +129,7 @@ struct MaintenanceView: View {
         }
         .sheet(isPresented: $showAddCustomTaskSheet) {
             NavigationStack {
-                AddCustomTaskView { newTask in
+                AddCustomTaskView(vehicles: viewModel.vehicleNames) { newTask in
                     viewModel.addCustomTask(newTask)
                 }
             }
