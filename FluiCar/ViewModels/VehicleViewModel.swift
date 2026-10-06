@@ -32,12 +32,13 @@ class VehicleViewModel {
     func fetchInformations() async {
         do {
             let allCars = try await dataBase.fetchAll()
+            
             if let updatedCar = allCars.first(where: { $0.id == car.id}) {
                 self.car = updatedCar
                 loadPhoto()
             }
         }catch {
-            print("Error on updated informations of vehicle: \(error)")
+            print("Error on fetch informations of vehicle: \(error)")
         }
     }
     func delete() async {
@@ -47,4 +48,17 @@ class VehicleViewModel {
             print("Error on delete vehicle: \(error)")
         }
     }
+    func updateKilometers() async {
+        do {
+            try await dataBase.update(car)
+        }catch{
+            print("Error on update vehicle kilometers: \(error)")
+        }
+    }
+    func textLimit(text: String, limit: Int = 20) -> String {
+            if text.count > limit {
+                return String(text.prefix(limit))
+            }
+            return text
+        }
 }
