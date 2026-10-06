@@ -8,7 +8,6 @@
 //definindo regras de manutenção
 import Foundation
 
-extension TaskType: Codable {}
 
 extension TaskType {
     static let automaticTypes: [TaskType] = [

@@ -2,8 +2,7 @@
 //  ReminderScheduler.swift
 //  FluiCar
 //
-//  Agenda e cancela notificações locais.
-//  Pede a permissão ao usuário na primeira vez que um lembrete é agendado.
+//  Created by Isabella Avelina on 01/10/26.
 //
 
 import Foundation
@@ -23,6 +22,8 @@ struct NotificationReminderScheduler: ReminderSchedulerProtocol {
     )
 
     func schedule(id: String, title: String, body: String, date: Date, repeatRule: ReminderRepeat) async {
+        let fireDate = repeatRule.nextFireDate(from: date)
+
         // Data passada sem repetição nunca dispararia: só limpa o pedido antigo.
         if repeatRule == .never && date <= Date() {
             center.removePendingNotificationRequests(withIdentifiers: [id])
@@ -37,7 +38,7 @@ struct NotificationReminderScheduler: ReminderSchedulerProtocol {
         content.sound = .default
 
         let trigger = UNCalendarNotificationTrigger(
-            dateMatching: repeatRule.triggerComponents(for: date),
+            dateMatching: repeatRule.triggerComponents(for: fireDate),
             repeats: repeatRule.repeats
         )
         let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)

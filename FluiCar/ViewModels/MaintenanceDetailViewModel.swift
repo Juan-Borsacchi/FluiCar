@@ -2,6 +2,8 @@
 //  MaintenanceDetailViewModel.swift
 //  FluiCar
 //
+//  Created by Isabella Avelina on 01/10/26.
+//
 
 import Foundation
 import Observation

@@ -7,8 +7,7 @@
 
 import Foundation
 
-enum TaskType: String, Identifiable, CaseIterable, Hashable {
-    case oilChange = "troca_oleo"
+enum TaskType: String, Identifiable, CaseIterable, Hashable, Codable {    case oilChange = "troca_oleo"
     case oilCheck = "verificar_oleo"
     case waterCheck = "verificar_agua"
     case brakeCheck = "verificar_freios"

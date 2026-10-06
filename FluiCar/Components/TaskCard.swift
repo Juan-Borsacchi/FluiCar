@@ -4,53 +4,54 @@
 //
 //  Created by Isabella Avelina on 28/09/26.
 //
-
 import SwiftUI
 
 struct TaskCard: View {
     var title: String
     var vehicle: String
     var dueDate: String
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            
             Text(title)
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundColor(.primary) // Adapta-se automaticamente (preto no claro, branco no escuro)
-                
+                .font(.headline)
+                .foregroundStyle(.primary)
+
             Text("Automóvel: \(vehicle)")
-                .font(.system(size: 13))
-                .foregroundColor(.secondary) // Cinzento adaptativo
-            
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+
             HStack(spacing: 6) {
                 Circle()
+                    .fill(Color("AccentColor"))
                     .frame(width: 8, height: 8)
-                    .foregroundColor(Color("AccentColor"))
-                
+
                 Text("Prazo final: \(dueDate)")
-                    .font(.system(size: 13))
-                    .foregroundColor(.secondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .glassEffect(.regular .interactive(), in: .rect(cornerRadius: 16))
-        .overlay(
+        .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 16))
+        .overlay {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color.gray.opacity(0.15), lineWidth: 1)
-        )
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 
 #Preview {
     ZStack {
-        Color("Primary")
+        Color("Background")
             .ignoresSafeArea()
-        
-        TaskCard(title: "Trocar o óleo",
-                 vehicle: "Carrinho 1",
-                 dueDate: "Dia 22/10/2026")
-            .padding()
+
+        TaskCard(
+            title: "Troca de Óleo",
+            vehicle: "Carrinho 1",
+            dueDate: "22 de out. de 2026"
+        )
+        .padding()
     }
 }

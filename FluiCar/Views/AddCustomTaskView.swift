@@ -4,100 +4,99 @@
 //
 //  Created by Isabella Avelina on 01/10/26.
 //
-
 import SwiftUI
 
 struct AddCustomTaskView: View {
-    @Environment(\.dismiss) var dismiss
-    
-    var vehicles: [String]
+    @Environment(\.dismiss) private var dismiss
 
-    var onSave: (CustomTaskModel) -> Void
-    var taskToEdit: CustomTaskModel?
-    
-    @State private var selectedVehicle: String
-    @State private var taskTitle: String = ""
-    @State private var taskNote: String = ""
-    @State private var alarmDate: Date = Date()
-    @State private var frequency: String = "Nunca"
-    
-    private let frequenciesList = ["Nunca", "Diária", "Semanal", "Mensal", "Anual"]
-    
-    private var availableVehicles: [String] {
-        if let name = taskToEdit?.vehicleName, !vehicles.contains(name) {
-            return [name] + vehicles
-        }
-        return vehicles
-    }
-    
+    private let vehicles: [CarModel]
+    private let taskToEdit: CustomTaskModel?
+    private let onSave: (CustomTaskModel) -> Void
+
+    @State private var selectedVehicleID: UUID?
+    @State private var title: String
+    @State private var note: String
+    @State private var alarmDate: Date
+    @State private var frequency: ReminderRepeat
+
     init(
-        vehicles: [String],
+        vehicles: [CarModel],
         taskToEdit: CustomTaskModel? = nil,
         onSave: @escaping (CustomTaskModel) -> Void
     ) {
         self.vehicles = vehicles
         self.taskToEdit = taskToEdit
         self.onSave = onSave
-        
-        _selectedVehicle = State(initialValue: taskToEdit?.vehicleName ?? vehicles.first ?? "")
-        
-        if let task = taskToEdit {
-            _taskTitle = State(initialValue: task.title)
-            _taskNote = State(initialValue: task.note)
-            _alarmDate = State(initialValue: task.alarmDate)
-            _frequency = State(initialValue: task.frequency)
-        }
+
+        _selectedVehicleID = State(initialValue: taskToEdit?.vehicleID ?? vehicles.first?.id)
+        _title = State(initialValue: taskToEdit?.title ?? "")
+        _note = State(initialValue: taskToEdit?.note ?? "")
+        _alarmDate = State(initialValue: taskToEdit?.alarmDate ?? Date())
+        _frequency = State(initialValue: taskToEdit?.frequency ?? .never)
     }
-    
+
+    private var trimmedTitle: String {
+        title.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var canSave: Bool {
+        !trimmedTitle.isEmpty && selectedVehicleID != nil
+    }
+
     var body: some View {
         Form {
             Section {
-                Picker("Selecione o Veículo", selection: $selectedVehicle) {
-                    ForEach(availableVehicles, id: \.self) { vehicle in
-                        Text(vehicle).tag(vehicle)
+                Picker("Selecione o Veículo", selection: $selectedVehicleID) {
+                    ForEach(vehicles) { car in
+                        Text(car.name).tag(Optional(car.id))
                     }
                 }
                 .pickerStyle(.menu)
             }
-            
-            Section(header: Text("Titulo da Tarefa")) {
-                TextField("Digite aqui o titulo da tarefa", text: $taskTitle)
+
+            Section("Título da Tarefa") {
+                TextField("Digite aqui o título da tarefa", text: $title)
             }
-            
-            Section(header: Text("Anotação")) {
-                TextEditor(text: $taskNote)
+
+            Section("Anotação") {
+                TextEditor(text: $note)
                     .frame(height: 100)
             }
-            
-            Section(header: Text("Lembrete")) {
+
+            Section("Lembrete") {
                 DatePicker("Alarme", selection: $alarmDate, displayedComponents: [.date, .hourAndMinute])
-                
-                Picker("Frequencia", selection: $frequency) {
-                    ForEach(frequenciesList, id: \.self) { freq in
-                        Text(freq).tag(freq)
+
+                Picker("Frequência", selection: $frequency) {
+                    ForEach(ReminderRepeat.allCases) { option in
+                        Text(option.title).tag(option)
                     }
                 }
             }
         }
-        .navigationTitle(taskToEdit != nil ? "Editar Tarefa" : "Nova Tarefa")
+        .navigationTitle(taskToEdit == nil ? "Nova Tarefa" : "Editar Tarefa")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             CustomSheetHeader(
                 onDismiss: { dismiss() },
-                onSave: {
-                    let newTask = CustomTaskModel(
-                        id: taskToEdit?.id ?? UUID(),
-                        vehicleName: selectedVehicle,
-                        title: taskTitle.isEmpty ? "Tarefa Sem Título" : taskTitle,
-                        note: taskNote,
-                        alarmDate: alarmDate,
-                        frequency: frequency
-                    )
-                    onSave(newTask)
-                    dismiss()
-                },
-                isSaveDisabled: taskTitle.isEmpty
+                onSave: save,
+                isSaveDisabled: !canSave
             )
         }
+    }
+
+    private func save() {
+        guard let vehicleID = selectedVehicleID else { return }
+        onSave(
+            CustomTaskModel(
+                id: taskToEdit?.id ?? UUID(),
+                vehicleID: vehicleID,
+                title: trimmedTitle,
+                note: note,
+                alarmDate: alarmDate,
+                frequency: frequency,
+                isInsurance: taskToEdit?.isInsurance
+            )
+        )
+        dismiss()
     }
 }
