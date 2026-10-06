@@ -10,8 +10,10 @@ import SwiftUI
 struct MaintenanceView: View {
     @State private var viewModel = MaintenanceViewModel()
     @State private var selectedFilter = "Todas"
-
     @State private var showAddCustomTaskSheet = false
+
+    @State private var showAlert = false
+    @State private var alertMessage: String?
 
     private let filters = ["Todas", "Prazo para vencer", "Manutenção recente"]
 
@@ -33,15 +35,17 @@ struct MaintenanceView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
-                        ForEach(viewModel.filteredTasks(for: selectedFilter)) { task in
+                        ForEach(viewModel.filteredTasks(for: selectedFilter)) { item in
+                            let task = item.task
+                            let dataFormatada = task.endDate?.formatted(date: .numeric, time: .omitted) ?? "Sem prazo definido"
+
                             ZStack(alignment: .leading) {
                                 NavigationLink {
                                     MaintenanceDetailView(
                                         taskTitle: task.title,
-                                        vehicleName: task.vehicle,
-                                        dueDateText: task.dueDate,
-                                        taskType: task.taskType,
-                                        taskKey: task.key
+                                        vehicleName: item.vehicleName,
+                                        dueDateText: dataFormatada,
+                                        taskKey: task.id.uuidString
                                     )
                                 } label: {
                                     EmptyView()
@@ -50,8 +54,8 @@ struct MaintenanceView: View {
 
                                 TaskCard(
                                     title: task.title,
-                                    vehicle: task.vehicle,
-                                    dueDate: task.dueDate
+                                    vehicle: item.vehicleName,
+                                    dueDate: dataFormatada
                                 )
                             }
                             .listRowBackground(Color.clear)
@@ -66,10 +70,11 @@ struct MaintenanceView: View {
                                         taskTitle: customTask.title,
                                         vehicleName: customTask.vehicleName,
                                         dueDateText: customTask.alarmDate.formatted(date: .abbreviated, time: .shortened),
-                                        customTask: customTask,
-                                        availableVehicles: viewModel.vehicleNames
+                                        vehicles: viewModel.vehicleNames,
+                                        customTask: customTask
                                     ) { updatedTask in
                                         viewModel.addCustomTask(updatedTask)
+                                        triggerAlert(with: "Tarefa '\(updatedTask.title)' criada com sucesso!")
                                     }
                                 } label: {
                                     EmptyView()
@@ -86,7 +91,13 @@ struct MaintenanceView: View {
                             .listRowSeparator(.hidden)
                             .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                         }
-                        .onDelete(perform: viewModel.deleteCustomTask)
+                        .onDelete { indexSet in
+                            let tasksToDelete = indexSet.map { viewModel.customTasks[$0] }
+                            viewModel.deleteCustomTask(at: indexSet)
+                            if let deletedTask = tasksToDelete.first {
+                                triggerAlert(with: "Tarefa '\(deletedTask.title)' eliminada.")
+                            }
+                        }
                     }
                     .listStyle(.plain)
                     .scrollContentBackground(.hidden)
@@ -131,9 +142,22 @@ struct MaintenanceView: View {
             NavigationStack {
                 AddCustomTaskView(vehicles: viewModel.vehicleNames) { newTask in
                     viewModel.addCustomTask(newTask)
+                    triggerAlert(with: "Tarefa '\(newTask.title)' criada com sucesso!")
                 }
             }
         }
+        .alert("Aviso", isPresented: $showAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            if let message = alertMessage {
+                Text(message)
+            }
+        }
+    }
+
+    private func triggerAlert(with message: String) {
+        alertMessage = message
+        showAlert = true
     }
 }
 
