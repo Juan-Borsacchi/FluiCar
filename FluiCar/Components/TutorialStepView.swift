@@ -61,9 +61,10 @@ struct TutorialStepView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(8)
-                .padding(.bottom, 16)
-                .background(.white)
+                .padding(.bottom)
+                .background(Color(.systemGray6))
                 .clipShape(RoundedRectangle(cornerRadius: 28))
+                .glassEffect(.regular .interactive(),  in: .rect(cornerRadius: 28))
                 
                 Spacer()
                 

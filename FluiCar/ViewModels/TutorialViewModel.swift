@@ -21,7 +21,7 @@ final class TutorialViewModel {
     private var initialWarningWasConfirmed = false
     
     private let defaultInitialWarning =
-    "A realização de qualquer manutenção é por sua conta e risco. " +
+    "A realização de qualquer manutenção é por sua conta e risco.\n\n" +
     "Use equipamentos de segurança e fale com alguém com experiência automotiva."
     
     func prepareTutorial(for task: TaskType) {
@@ -32,29 +32,26 @@ final class TutorialViewModel {
         initialWarningIsVisible = true
         initialWarningWasConfirmed = false
         
-        // O texto precisa ser definido antes de ativar o alerta.
         currentWarningText = defaultInitialWarning
-        showWarning = true
+        
+        Task {
+            try? await Task.sleep(for: .seconds(0.4))
+            showWarning = true
+        }
     }
     
     func handlePrimaryAction() {
-        guard let tutorial else {
-            return
-        }
+        guard let tutorial else { return }
         
-        if currentPhase == 0 {
-            if !initialWarningWasConfirmed {
-                showInitialWarning()
-            } else {
-                advancePhase()
-            }
-            
+        if currentPhase == 0 && !initialWarningWasConfirmed {
+            showInitialWarning()
             return
         }
         
         let nextStepIndex = currentPhase
         
         if nextStepIndex < tutorial.steps.count {
+            
             if let warning = tutorial.steps[nextStepIndex].warningMessage {
                 currentWarningText = warning
                 initialWarningIsVisible = false
@@ -62,6 +59,7 @@ final class TutorialViewModel {
             } else {
                 advancePhase()
             }
+            
         } else {
             finishTutorial()
         }

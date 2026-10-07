@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum TaskType: String, Identifiable, CaseIterable, Hashable {
+enum TaskType: String, Identifiable, CaseIterable, Hashable, Codable {
     case oilChange = "troca_oleo"
     case oilCheck = "verificar_oleo"
     case waterCheck = "verificar_agua"
@@ -85,7 +85,7 @@ private extension TaskType {
         TutorialModel(
             title: "Troca de Óleo",
             introImage: .asset(
-                name: "troca_oleo",
+                name: "change_oil",
                 fallback: "drop.fill"
             ),
             introDescription: "Entenda como funciona a troca de óleo do motor e o que é feito nesse processo.",
@@ -115,7 +115,7 @@ private extension TaskType {
                     Posicione uma bacia embaixo do parafuso, solte-o com uma chave e deixe o óleo antigo escorrer até o fim.
                     """,
                     image: .asset(
-                        name: "passo1_oleo",
+                        name: "step1_oil",
                         fallback: "wrench.and.screwdriver.fill"
                     ),
                     warningMessage: "Aviso: Nunca fique embaixo do carro apoiado apenas pelo macaco hidráulico."
@@ -130,7 +130,7 @@ private extension TaskType {
                     Depois, coloque o óleo novo na quantidade indicada pelo manual e use a vareta para conferir o nível.
                     """,
                     image: .asset(
-                        name: "troca_oleo",
+                        name: "change_oil",
                         fallback: "drop.fill"
                     ),
                     warningMessage: "Aviso: Lubrifique a borracha do filtro novo com um pouco de óleo e aperte-o apenas com a força das mãos."
@@ -143,7 +143,7 @@ private extension TaskType {
         TutorialModel(
             title: "Verificação de Óleo",
             introImage: .asset(
-                name: "verificacao_oleo",
+                name: "check_oil",
                 fallback: "magnifyingglass"
             ),
             introDescription: "Entenda como verificar o nível de óleo do motor corretamente.",
@@ -165,7 +165,7 @@ private extension TaskType {
                     Depois, coloque a vareta novamente até o final.
                     """,
                     image: .asset(
-                        name: "verificacao_oleo",
+                        name: "step1_coil",
                         fallback: "magnifyingglass"
                     ),
                     warningMessage: "Aviso: Se o motor estiver funcionando ou recém-desligado, a leitura poderá ficar incorreta."
@@ -179,7 +179,10 @@ private extension TaskType {
                     
                     Se estiver próximo do mínimo, complete usando o mesmo tipo de óleo recomendado pelo manual.
                     """,
-                    image: .system("gauge.with.dots.needle.67percent"),
+                    image:  .asset(
+                        name: "step2_coil",
+                        fallback: "magnifyingglass"
+                    ),
                     warningMessage: "Aviso: O óleo não deve ficar abaixo da marca mínima nem acima da marca máxima."
                 )
             ]
@@ -190,7 +193,7 @@ private extension TaskType {
         TutorialModel(
             title: "Ver e Trocar Água",
             introImage: .asset(
-                name: "verificar_agua",
+                name: "check_water",
                 fallback: "drop.fill"
             ),
             introDescription: "Aprenda a verificar e completar o fluido de arrefecimento do radiador.",
@@ -220,7 +223,7 @@ private extension TaskType {
                     O fluido deve estar entre essas duas marcações.
                     """,
                     image: .asset(
-                        name: "verificar_agua",
+                        name: "step1_cwater",
                         fallback: "drop.fill"
                     ),
                     warningMessage: "Aviso: Nunca abra a tampa do radiador ou do reservatório com o motor quente."
@@ -234,7 +237,10 @@ private extension TaskType {
                     
                     Se o nível baixar frequentemente, procure uma oficina para verificar possíveis vazamentos.
                     """,
-                    image: .system("drop.fill"),
+                    image: .asset(
+                        name: "step2_cwater",
+                        fallback: "drop.fill"
+                    ),
                     warningMessage: "Aviso: Se for necessário completar o reservatório toda semana ou todo mês, pode existir um vazamento."
                 )
             ]
@@ -245,7 +251,7 @@ private extension TaskType {
         TutorialModel(
             title: "Checagem dos Freios",
             introImage: .asset(
-                name: "verificar_freios",
+                name: "check_brake",
                 fallback: "exclamationmark.triangle.fill"
             ),
             introDescription: "Aprenda a identificar sinais de desgaste nas pastilhas e nos discos de freio.",
@@ -264,14 +270,14 @@ private extension TaskType {
                 TutorialStep(
                     title: "Passo 1: Inspeção visual",
                     description: """
-                    Aponte uma lanterna pelos espaços da roda.
-                    
-                    Procure pelo disco de freio e observe se há riscos profundos, rachaduras ou sinais de desgaste excessivo.
-                    
-                    Em algumas rodas traseiras, o veículo pode utilizar tambores em vez de discos.
+                    Aponte uma lanterna pelos espaços da roda para iluminar o sistema.
+                        
+                    Procure pelo disco de freio (comum nas rodas dianteiras) e observe se há riscos profundos, rachaduras ou sinais de desgaste excessivo.
+                     
+                    Nota: Se o veículo possui calotas fechadas ou freios a tambor (comuns nas rodas traseiras), não é possível fazer essa inspeção visual sem remover a roda.
                     """,
                     image: .asset(
-                        name: "verificar_freios",
+                        name: "step1_cbrake",
                         fallback: "exclamationmark.triangle.fill"
                     ),
                     warningMessage: "Aviso: Nunca toque nos discos logo após dirigir. Eles podem estar extremamente quentes."
@@ -285,7 +291,10 @@ private extension TaskType {
                     
                     A medição correta da espessura deve ser feita por um profissional.
                     """,
-                    image: .system("exclamationmark.triangle.fill"),
+                    image: .asset(
+                        name: "step2_cbrake",
+                        fallback: "exclamationmark.triangle.fill"
+                    ),
                     warningMessage: "Aviso: Se houver vibração forte ou ruídos durante a frenagem, procure uma oficina."
                 )
             ]
@@ -296,10 +305,10 @@ private extension TaskType {
         TutorialModel(
             title: "Calibragem dos Pneus",
             introImage: .asset(
-                name: "calibrar_pneus",
+                name: "tire_calibrate",
                 fallback: "gauge.with.dots.needle.67percent"
             ),
-            introDescription: "Aprenda a conferir e ajustar corretamente a pressão dos pneus.",
+            introDescription: "Aprenda a ajustar a pressão a cada 15 dias. A calibragem correta evita desgaste nas bordas (pressão baixa) ou no centro (pressão alta) do pneu.",
             introNote: "Aviso: Faça a calibragem preferencialmente com os pneus frios.",
             materials: [
                 TutorialMaterial(
@@ -319,14 +328,14 @@ private extension TaskType {
                 TutorialStep(
                     title: "Passo 1: Conferência da pressão",
                     description: """
-                    Deixe o carro parado tempo suficiente para que os pneus estejam frios.
+                    Vá a um posto próximo (rode menos de 3 km) ou deixe o carro parado para que os pneus estejam frios.
                     
-                    Consulte a etiqueta na porta do motorista ou o manual do veículo.
+                    Consulte a etiqueta na porta do motorista, na tampa do tanque de combustível, no pneu ou no manual do veículo.
                     
                     Confira a pressão dos quatro pneus e também do estepe, se houver.
                     """,
                     image: .asset(
-                        name: "calibrar_pneus",
+                        name: "step1_tcalibrate",
                         fallback: "gauge.with.dots.needle.67percent"
                     ),
                     warningMessage: "Aviso: Não esvazie um pneu quente para tentar atingir a pressão recomendada."
@@ -340,63 +349,64 @@ private extension TaskType {
                     
                     Recoloque as tampas das válvulas ao finalizar.
                     """,
-                    image: .system("gauge.with.dots.needle.67percent"),
-                    warningMessage: "Aviso: A pressão pode ser diferente entre os eixos e quando o veículo estiver carregado."
+                    image: .asset(
+                        name: "step2_tcalibrate",
+                        fallback: "gauge.with.dots.needle.67percent"
+                    ),
+                    warningMessage: "Aviso: Andar com o pneu murcho gasta as laterais e consome mais combustível. Pneu muito cheio gasta o centro e reduz a estabilidade."
                 )
             ]
         )
     }
-    
     var batteryCheckTutorial: TutorialModel {
         TutorialModel(
             title: "Checagem da Bateria",
             introImage: .asset(
-                name: "verificar_bateria",
+                name: "check_batery",
                 fallback: "battery.100percent"
             ),
-            introDescription: "Aprenda a identificar sinais de desgaste ou problemas na bateria do veículo.",
+            introDescription: "Aprenda a identificar sinais de desgaste ou problemas na bateria do seu veículo.",
             introNote: "Aviso: Faça a inspeção com o carro desligado, em local ventilado e sem chamas ou faíscas.",
             materials: [
                 TutorialMaterial(
                     name: "Lanterna",
-                    description: "Use a lanterna do celular para visualizar os terminais e o compartimento."
+                    description: "Use a lanterna para visualizar melhor a carcaça e os terminais da bateria."
                 ),
                 TutorialMaterial(
                     name: "Multímetro",
-                    description: "Pode ser usado para medir a tensão da bateria."
-                ),
-                TutorialMaterial(
-                    name: "Manual do veículo",
-                    description: "Consulte as orientações específicas do sistema elétrico do seu carro."
+                    description: "Pode ser usado para medir a tensão e a saúde elétrica da bateria."
                 )
             ],
             steps: [
                 TutorialStep(
-                    title: "Passo 1: Inspeção visual dos terminais",
+                    title: "Passo 1: Inspeção visual e de sintomas",
                     description: """
-                    Com o carro desligado, abra o capô e localize a bateria.
-                    
-                    Observe se existem trincas, vazamentos, deformações ou corrosão excessiva.
-                    
-                    Os terminais positivo e negativo devem estar firmes e limpos.
-                    """,
+                        Antes de abrir o capô, note se a partida anda "pesada", luzes ou painel oscilam ou a multimídia reinicia ao dar a partida.
+                        
+                        Com o carro desligado, abra o capô e localize a bateria.
+                        
+                        Use uma lanterna para verificar se a carcaça tem estufamentos, rachaduras ou vazamentos, e se os terminais (+) e (-) estão firmes e livres daquele pó esverdeado/branco (zinabre).
+                        """,
                     image: .asset(
-                        name: "verificar_bateria",
+                        name: "step1_cbatery",
                         fallback: "battery.100percent"
                     ),
-                    warningMessage: "Aviso: Nunca coloque objetos metálicos entre os dois terminais da bateria."
+                    warningMessage: "Aviso: Se houver cheiro de 'ovo podre' ou se a carcaça estiver estufada, a bateria pode estar sobrecarregada ou fervendo. Nunca toque no zinabre sem proteção."
                 ),
                 TutorialStep(
-                    title: "Passo 2: Teste da tensão",
+                    title: "Passo 2: Teste com multímetro",
                     description: """
-                    Se possuir um multímetro, selecione a função de tensão contínua.
-                    
-                    Encoste a ponta positiva no terminal positivo e a ponta negativa no terminal negativo.
-                    
-                    Compare a leitura com a especificação do veículo. Se houver dificuldade para dar partida, procure uma oficina.
-                    """,
-                    image: .system("bolt.fill"),
-                    warningMessage: "Aviso: Uma leitura baixa pode indicar bateria descarregada, mas também pode haver problema no alternador ou no sistema de carga."
+                        Com o veículo desligado há mais de 30 minutos, ajuste o multímetro em tensão contínua (DCV ou escala de 20V).
+                        
+                        Encoste a ponta vermelha no terminal positivo (+) e a preta no negativo (-). A leitura deve ficar entre 12.4V e 12.6V.
+                        
+                        Depois, ligue o motor: a tensão deve subir para algo entre 13.5V e 14.7V. Se ficar abaixo de 13V com o carro ligado, o alternador pode estar falhando.
+                        """,
+                    image: .asset(
+                        name: "step2_cbatery",
+                        fallback: "battery.100percent"
+                    ),
+                    warningMessage: "Aviso: Se a tensão cair para menos de 9.6V no exato instante da partida, a bateria provavelmente já não segura mais carga."
                 )
             ]
         )

@@ -15,7 +15,7 @@ enum Tabs: Hashable {
 
 struct TabBarsView: View {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = true
-    @State private var mostrarOnboarding: Bool = true
+    @State private var mostrarOnboarding: Bool = false
 
     @State private var selectedTab: Tabs = .carHome
     @State private var searchString = ""
