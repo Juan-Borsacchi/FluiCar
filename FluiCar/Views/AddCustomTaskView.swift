@@ -3,15 +3,15 @@
 //  FluiCar
 //
 //  Created by Isabella Avelina on 01/10/26.
-//
+
 import SwiftUI
 
 struct AddCustomTaskView: View {
     @Environment(\.dismiss) private var dismiss
 
     private let vehicles: [CarModel]
-    private let taskToEdit: CustomTaskModel?
-    private let onSave: (CustomTaskModel) -> Void
+    private let taskToEdit: CarTaskModel?
+    private let onSave: (CarTaskModel) -> Void
 
     @State private var selectedVehicleID: UUID?
     @State private var title: String
@@ -21,18 +21,27 @@ struct AddCustomTaskView: View {
 
     init(
         vehicles: [CarModel],
-        taskToEdit: CustomTaskModel? = nil,
-        onSave: @escaping (CustomTaskModel) -> Void
+        taskToEdit: CarTaskModel? = nil,
+        onSave: @escaping (CarTaskModel) -> Void
     ) {
         self.vehicles = vehicles
         self.taskToEdit = taskToEdit
         self.onSave = onSave
 
-        _selectedVehicleID = State(initialValue: taskToEdit?.vehicleID ?? vehicles.first?.id)
+        let matchingCar = vehicles.first(where: { $0.name == taskToEdit?.vehicleName })
+        _selectedVehicleID = State(initialValue: matchingCar?.id ?? vehicles.first?.id)
+        
         _title = State(initialValue: taskToEdit?.title ?? "")
-        _note = State(initialValue: taskToEdit?.note ?? "")
-        _alarmDate = State(initialValue: taskToEdit?.alarmDate ?? Date())
-        _frequency = State(initialValue: taskToEdit?.frequency ?? .never)
+        _note = State(initialValue: taskToEdit?.textDescription ?? "")
+        _alarmDate = State(initialValue: taskToEdit?.endDate ?? taskToEdit?.startDate ?? Date())
+        
+        let initialFreq: ReminderRepeat
+        if let freqString = taskToEdit?.frequency, let enumValue = ReminderRepeat(rawValue: freqString) {
+            initialFreq = enumValue
+        } else {
+            initialFreq = .never
+        }
+        _frequency = State(initialValue: initialFreq)
     }
 
     private var trimmedTitle: String {
@@ -85,15 +94,19 @@ struct AddCustomTaskView: View {
     }
 
     private func save() {
-        guard let vehicleID = selectedVehicleID else { return }
+        guard let vehicleID = selectedVehicleID,
+              let selectedVehicle = vehicles.first(where: { $0.id == vehicleID }) else { return }
+        
         onSave(
-            CustomTaskModel(
+            CarTaskModel(
                 id: taskToEdit?.id ?? UUID(),
-                vehicleID: vehicleID,
                 title: trimmedTitle,
-                note: note,
-                alarmDate: alarmDate,
-                frequency: frequency,
+                textDescription: note,
+                startDate: taskToEdit?.startDate ?? Date(),
+                endDate: alarmDate,
+                frequency: frequency.rawValue,
+                vehicleName: selectedVehicle.name, 
+                isAutomatic: taskToEdit?.isAutomatic ?? false,
                 isInsurance: taskToEdit?.isInsurance
             )
         )

@@ -72,15 +72,23 @@ struct MaintenanceDetailView: View {
     // MARK: - Edição
 
     @ViewBuilder
-    private var editSheet: some View {
-        if let custom = viewModel.customTask {
-            AddCustomTaskView(vehicles: viewModel.vehicles, taskToEdit: custom) { updatedTask in
-                viewModel.saveCustomTask(updatedTask)
+        private var editSheet: some View {
+            if let custom = viewModel.customTask {
+                AddCustomTaskView(vehicles: viewModel.vehicles, taskToEdit: custom) { updatedTask in
+                    
+                    if let selectedCar = viewModel.vehicles.first(where: { $0.name == updatedTask.vehicleName }) {
+                        viewModel.saveCustomTask(updatedTask, to: selectedCar)
+                    } else {
+                        if let firstCar = viewModel.vehicles.first {
+                            viewModel.saveCustomTask(updatedTask, to: firstCar)
+                        }
+                    }
+                    
+                }
+            } else {
+                EditMaintenanceSheet(viewModel: viewModel)
             }
-        } else {
-            EditMaintenanceSheet(viewModel: viewModel)
         }
-    }
 
     // MARK: - Detalhes
 
