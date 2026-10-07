@@ -262,7 +262,7 @@ struct VehicleView: View {
             Text("Preço na FIPE")
                 .font(.subheadline)
                 .fontWeight(.bold)
-                .foregroundStyle(.black)
+                .foregroundStyle(.primary)
             
             Spacer()
             
@@ -273,7 +273,7 @@ struct VehicleView: View {
         .padding()
         
         .frame(minWidth: 181, maxWidth: .infinity,minHeight: 50,maxHeight: .infinity ,alignment: .leading)
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .clipShape(
             RoundedRectangle(cornerRadius: 17.5)
         )

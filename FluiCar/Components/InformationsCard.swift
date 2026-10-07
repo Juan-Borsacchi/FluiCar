@@ -24,17 +24,17 @@ struct InformationsCard: View {
             Text(name)
                 .font(.caption)
                 .fontWeight(.regular)
-                .foregroundStyle(.gray)
+                .foregroundStyle(.secondary)
             Text(information)
                 .font(.subheadline)
                 .fontWeight(.bold)
-                .foregroundStyle(.black)
+                .foregroundStyle(.primary)
                 
             
         }
         .padding()
         .frame(minWidth: 180, idealWidth: 180, maxWidth: .infinity, minHeight: 102, idealHeight: 102,  maxHeight: .infinity, alignment: .leading)
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 17.5))
 //                .overlay(
 //                    RoundedRectangle(cornerRadius: 17.5)
