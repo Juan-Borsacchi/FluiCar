@@ -94,9 +94,10 @@ final class CoordinatorCore: CoordinatorProtocol {
             MaintenanceView()
         case .tutorial(let taskType):
             TutorialView(taskType: taskType)
+        case .search:
+            SearchView()
         case .maintenanceDetail(let ref):
             MaintenanceDetailView(viewModel: MaintenanceDetailViewModel(ref: ref))
-            // AISABELLATA REFATORANDO E CRIOU UMA VIEWMODEL PARA MANUTENCAO DETALEHR
         }
     }
 }

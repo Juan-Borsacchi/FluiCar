@@ -14,7 +14,7 @@ struct CarTaskModel: Identifiable, Hashable {
     var startDate: Date?
     var endDate: Date?
     var frequency: String?
-    
+    var vehicleName: String
     
 }
 
