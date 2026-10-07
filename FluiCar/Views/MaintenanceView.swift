@@ -131,8 +131,18 @@ struct MaintenanceView: View {
 
             Menu {
                 Picker("Filtrar", selection: $viewModel.selectedFilter) {
-                    ForEach(TaskFilter.allCases) { filter in
+                    ForEach(TaskFilter.general) { filter in
                         Text(filter.title).tag(filter)
+                    }
+                }
+
+                if !viewModel.vehicles.isEmpty {
+                    Section("Veículos") {
+                        Picker("Veículo", selection: $viewModel.selectedFilter) {
+                            ForEach(viewModel.vehicles) { car in
+                                Text(car.name).tag(TaskFilter.vehicle(car.id))
+                            }
+                        }
                     }
                 }
             } label: {

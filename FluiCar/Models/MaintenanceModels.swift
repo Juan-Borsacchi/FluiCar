@@ -10,18 +10,23 @@ import Foundation
 
 // MARK: - Filtro
 
-enum TaskFilter: String, CaseIterable, Identifiable {
+enum TaskFilter: Hashable, Identifiable {
     case all
     case dueSoon
     case recent
+    case vehicle(UUID)
 
-    var id: String { rawValue }
+    var id: Self { self }
+
+    /// Filtros fixos do menu. Os de veículo são montados a partir dos carros cadastrados.
+    static let general: [TaskFilter] = [.all, .dueSoon, .recent]
 
     var title: String {
         switch self {
         case .all: return "Todas"
         case .dueSoon: return "Prazo para vencer"
         case .recent: return "Manutenção recente"
+        case .vehicle: return "Veículo"
         }
     }
 }
