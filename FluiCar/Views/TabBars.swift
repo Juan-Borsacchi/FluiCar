@@ -47,9 +47,7 @@ struct TabBarsView: View {
 
             Tab("Buscar", systemImage: "magnifyingglass", value: .search, role: .prominent) {
                 NavigationStack(path: $bindableCoordinator.searchPath) {
-                    Text("Tela de Busca")
-                        .navigationTitle("Buscar")
-                        .searchable(text: $searchString)
+                    coordinator.build(.search)
                         .navigationDestination(for: AppRoute.self) { route in
                             coordinator.build(route)
                         }

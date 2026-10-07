@@ -126,25 +126,24 @@ final class MaintenanceService {
         return MaintenanceRow(task: task, vehicleName: name)
     }
 
-    func customRow(for task: CustomTaskModel) -> MaintenanceRow? {
-        guard let name = carName(for: task.vehicleID) else { return nil }
-        return MaintenanceRow(task: task, vehicleName: name)
-    }
+    func customRow(for task: CarTaskModel) -> MaintenanceRow? {
+            return MaintenanceRow(task: task)
+        }
 
     /// Próximas tarefas de um carro (automáticas + customizadas), da mais próxima para a mais distante.
     func upcomingRows(for carID: UUID, limit: Int) -> [MaintenanceRow] {
-        let automatic = automaticTasks
-            .filter { $0.carID == carID }
-            .compactMap { automaticRow(for: $0) }
-        let custom = customTasks
-            .filter { $0.vehicleID == carID }
-            .compactMap { customRow(for: $0) }
+            let automatic = automaticTasks
+                .filter { $0.carID == carID }
+                .compactMap { automaticRow(for: $0) }
+                
+            let carTasks = cars.first(where: { $0.id == carID })?.tasks.filter { $0.isAutomatic == false } ?? []
+            let custom = carTasks.compactMap { customRow(for: $0) }
 
-        let sorted = (automatic + custom).sorted {
-            ($0.dueDate ?? .distantFuture) < ($1.dueDate ?? .distantFuture)
+            let sorted = (automatic + custom).sorted {
+                ($0.dueDate ?? .distantFuture) < ($1.dueDate ?? .distantFuture)
+            }
+            return Array(sorted.prefix(limit))
         }
-        return Array(sorted.prefix(limit))
-    }
 
     // MARK: - Alterações
 
@@ -164,53 +163,100 @@ final class MaintenanceService {
         commitAutomaticChange(at: index)
     }
 
-    func saveCustomTask(_ task: CustomTaskModel) {
-        if let index = customTasks.firstIndex(where: { $0.id == task.id }) {
-            customTasks[index] = task
-        } else {
-            customTasks.append(task)
+    private func parseFrequency(_ frequencyText: String?) -> ReminderRepeat {
+        guard let text = frequencyText?.lowercased().trimmingCharacters(in: .whitespaces) else {
+            return .never
         }
-        storage.saveCustomTasks(customTasks)
-        scheduleReminder(for: task)
+        
+        switch text {
+        case "diário", "diariamente", "daily":
+            return .daily
+        case "semanal", "semanalmente", "weekly":
+            return .weekly
+        case "mensal", "mensalmente", "monthly":
+            return .monthly
+        case "semestral", "semestralmente", "semiannual":
+            return .semiannual
+        case "anual", "anualmente", "yearly":
+            return .yearly
+        default:
+            return .never
+        }
+    }
+    
+    private func scheduleReminder(for task: CarTaskModel) {
+        let scheduler = scheduler
+        let id = "custom-\(task.id.uuidString)"
+        let title = "Lembrete: \(task.title)"
+        
+        let body = (task.textDescription?.isEmpty == false) ? task.textDescription! : "Veículo: \(task.vehicleName)"
+        
+        guard let date = task.endDate ?? task.startDate else { return }
+        
+        let repeatRule = parseFrequency(task.frequency)
+        Task {
+            
+            await scheduler.schedule(id: id, title: title, body: body, date: date, repeatRule: repeatRule)
+        }
+    }
+    
+    func saveCustomTask(_ task: CarTaskModel, to car: CarModel) {
+//        if let index = customTasks.firstIndex(where: { $0.id == task.id }) {
+//            customTasks[index] = task
+//        } else {
+//            customTasks.append(task)
+//        }
+//        storage.saveCustomTasks(customTasks)
+        Task {
+            do{
+                try await repository.addTask(task, to: car)
+                await load()
+                scheduleReminder(for: task)
+            } catch {
+                logger.error("Heavy Error: Fail on save in database: \(error.localizedDescription)")
+            }
+        }
+        
     }
 
     /// Mantém a tarefa "Seguro" do carro alinhada com o cadastro do veículo:
     /// cria/atualiza quando o carro tem seguro e remove quando deixa de ter.
     func syncInsuranceTask(for car: CarModel) async {
-        // Garante que o carro recém-salvo já esteja na lista (o lembrete precisa do nome dele).
-        await load()
-        guard !loadFailed else { return }
+            
+            let existing = car.tasks.first { $0.title == "Seguro" }
 
-        let existing = customTasks.first { $0.vehicleID == car.id && $0.isInsurance == true }
+            guard car.insurance == true else {
+                if let existing { deleteCustomTask(existing) }
+                return
+            }
 
-        guard car.insurance == true else {
-            if let existing { deleteCustomTask(id: existing.id) }
-            return
-        }
-
-        saveCustomTask(
-            CustomTaskModel(
-                id: existing?.id ?? UUID(),
-                vehicleID: car.id,
-                title: "Seguro",
-                note: existing?.note ?? "Renovação do seguro do veículo.",
-                alarmDate: insuranceAlarmDate(car.alarm ?? Date()),
-                frequency: car.frequency.reminderRepeat,
-                isInsurance: true
+            saveCustomTask(
+                CarTaskModel(
+                    id: existing?.id ?? UUID(),
+                    title: "Seguro",
+                    textDescription: existing?.textDescription ?? "Renovação do seguro do veículo.",
+                    startDate: Date(),
+                    endDate: insuranceAlarmDate(car.alarm ?? Date()),
+                    frequency: "anual",
+                    vehicleName: car.name
+                ),
+                to: car
             )
-        )
-    }
+        }
 
     /// O cadastro só pede a data; o lembrete dispara às 9h desse dia.
     private func insuranceAlarmDate(_ date: Date) -> Date {
         Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: date) ?? date
     }
 
-    func deleteCustomTask(id: UUID) {
-        guard customTasks.contains(where: { $0.id == id }) else { return }
-        customTasks.removeAll { $0.id == id }
-        storage.saveCustomTasks(customTasks)
-        scheduler.cancel(ids: [customReminderID(id)])
+    func deleteCustomTask(_ task: CarTaskModel) {
+        Task {
+            do {
+                try await repository.deleteTask(task)
+            }catch{
+                logger.error("ERRO GRAVE: Falha ao deletar do banco: \(error.localizedDescription)")
+            }
+        }
     }
 
     private func commitAutomaticChange(at index: Int) {

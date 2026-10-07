@@ -47,10 +47,12 @@ final class MaintenanceViewModel {
     }
 
     var customRows: [MaintenanceRow] {
-        service.customTasks
-            .sorted { $0.alarmDate < $1.alarmDate }
-            .compactMap { service.customRow(for: $0) }
-    }
+            let allCustomTasks = service.cars.flatMap { $0.tasks }.filter { $0.isAutomatic == false }
+            
+            return allCustomTasks
+                .sorted { ($0.endDate ?? Date()) < ($1.endDate ?? Date()) }
+                .map { MaintenanceRow(task: $0) }
+        }
 
     private var filteredAutomaticTasks: [AutomaticTask] {
         let tasks = service.automaticTasks
@@ -74,16 +76,21 @@ final class MaintenanceViewModel {
         await service.load()
     }
 
-    func saveNewTask(_ task: CustomTaskModel) {
-        service.saveCustomTask(task)
-        showAlert("Tarefa '\(task.title)' criada com sucesso!")
-    }
+    func saveNewTask(_ task: CarTaskModel, to car: CarModel) {
+            service.saveCustomTask(task, to: car)
+            showAlert("Tarefa '\(task.title)' criada com sucesso!")
+        }
 
     func deleteCustomTask(_ row: MaintenanceRow) {
-        guard case .custom(let id) = row.ref else { return }
-        service.deleteCustomTask(id: id)
-        showAlert("Tarefa '\(row.title)' excluída.")
-    }
+            guard case .custom(let id) = row.ref else { return }
+            
+            let allTasks = service.cars.flatMap { $0.tasks }
+            guard let taskToDelete = allTasks.first(where: { $0.id == id }) else { return }
+            
+            service.deleteCustomTask(taskToDelete)
+            
+            showAlert("Tarefa '\(row.title)' excluída.")
+        }
 
     private func showAlert(_ message: String) {
         alertMessage = message

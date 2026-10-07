@@ -44,10 +44,10 @@ final class MaintenanceDetailViewModel {
         return service.automaticTask(id: id)
     }
 
-    var customTask: CustomTaskModel? {
-        guard case .custom(let id) = ref else { return nil }
-        return service.customTask(id: id)
-    }
+    var customTask: CarTaskModel? {
+            guard case .custom(let id) = ref else { return nil }
+            return service.cars.flatMap { $0.tasks }.first(where: { $0.id == id })
+        }
 
     var isCustom: Bool {
         if case .custom = ref { return true }
@@ -63,41 +63,49 @@ final class MaintenanceDetailViewModel {
     var vehicles: [CarModel] { service.cars }
 
     private var vehicleName: String {
-        let carID = automaticTask?.carID ?? customTask?.vehicleID
-        return carID.flatMap { service.carName(for: $0) } ?? "—"
-    }
+            if let custom = customTask {
+                return custom.vehicleName
+            }
+            
+            if let autoTask = automaticTask,
+               let name = service.carName(for: autoTask.carID) {
+                return name
+            }
+            
+            return "—"
+        }
 
     // MARK: - Apresentação
 
     var detailRows: [MaintenanceDetailRow] {
-        if let task = automaticTask {
-            return [
-                MaintenanceDetailRow(label: "Veículo", value: vehicleName),
-                MaintenanceDetailRow(label: task.type.optionsTitle, value: task.selectedOption ?? task.type.options.first ?? "—"),
-                MaintenanceDetailRow(
-                    label: "Última checagem",
-                    value: task.lastCheckDate?.formatted(date: .abbreviated, time: .omitted) ?? "Ainda não registrada"
-                ),
-                MaintenanceDetailRow(
-                    label: "Próxima checagem",
-                    value: task.dueDate.formatted(date: .abbreviated, time: .omitted)
-                )
-            ]
+            if let task = automaticTask {
+                return [
+                    MaintenanceDetailRow(label: "Veículo", value: vehicleName),
+                    MaintenanceDetailRow(label: task.type.optionsTitle, value: task.selectedOption ?? task.type.options.first ?? "—"),
+                    MaintenanceDetailRow(
+                        label: "Última checagem",
+                        value: task.lastCheckDate?.formatted(date: .abbreviated, time: .omitted) ?? "Ainda não registrada"
+                    ),
+                    MaintenanceDetailRow(
+                        label: "Próxima checagem",
+                        value: task.dueDate.formatted(date: .abbreviated, time: .omitted)
+                    )
+                ]
+            }
+            if let task = customTask {
+                return [
+                    MaintenanceDetailRow(label: "Veículo", value: vehicleName),
+                    MaintenanceDetailRow(label: "Alarme", value: (task.endDate ?? Date()).formatted(date: .abbreviated, time: .shortened)),
+                    MaintenanceDetailRow(label: "Frequência", value: task.frequency?.capitalized ?? "Nenhuma")
+                ]
+            }
+            return []
         }
-        if let task = customTask {
-            return [
-                MaintenanceDetailRow(label: "Veículo", value: vehicleName),
-                MaintenanceDetailRow(label: "Alarme", value: task.alarmDate.formatted(date: .abbreviated, time: .shortened)),
-                MaintenanceDetailRow(label: "Frequência", value: task.frequency.title)
-            ]
-        }
-        return []
-    }
 
     var noteText: String? {
-        guard let note = customTask?.note, !note.isEmpty else { return nil }
-        return note
-    }
+            guard let note = customTask?.textDescription, !note.isEmpty else { return nil }
+            return note
+        }
 
     var footnote: String? {
         guard automaticTask != nil else { return nil }
@@ -139,14 +147,14 @@ final class MaintenanceDetailViewModel {
 
     // MARK: - Edição de tarefa customizada
 
-    func saveCustomTask(_ task: CustomTaskModel) {
-        service.saveCustomTask(task)
-        showAlert(
-            title: "Aviso",
-            message: "Tarefa '\(task.title)' atualizada com sucesso!",
-            dismissAfter: false
-        )
-    }
+    func saveCustomTask(_ task: CarTaskModel, to car: CarModel) {
+            service.saveCustomTask(task, to: car)
+            showAlert(
+                title: "Aviso",
+                message: "Tarefa '\(task.title)' atualizada com sucesso!",
+                dismissAfter: false
+            )
+        }
 
     // MARK: - Conclusão
 

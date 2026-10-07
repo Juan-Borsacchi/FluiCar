@@ -128,11 +128,11 @@ struct MaintenanceRow: Identifiable, Hashable {
         self.includesTime = false
     }
 
-    init(task: CustomTaskModel, vehicleName: String) {
-        self.ref = .custom(task.id)
-        self.title = task.title
-        self.vehicleName = vehicleName
-        self.dueDate = task.alarmDate
-        self.includesTime = true
-    }
+    init(task: CarTaskModel) {
+            self.ref = .custom(task.id)
+            self.title = task.title
+            self.vehicleName = task.vehicleName
+            self.dueDate = task.endDate ?? task.startDate
+            self.includesTime = true
+        }
 }
