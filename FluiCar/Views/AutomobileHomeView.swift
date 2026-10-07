@@ -55,7 +55,7 @@ struct AutomobileHomeView: View {
             if viewModel.hasLoaded {
                 if viewModel.cars.isEmpty {
                     EmptyVehiclesCardView {
-                        coordinator.push(.addVehicle)
+                        coordinator.presentSheet(.addVehicle)
                     }
                     .padding(.horizontal)
                     .padding(.top, 8)

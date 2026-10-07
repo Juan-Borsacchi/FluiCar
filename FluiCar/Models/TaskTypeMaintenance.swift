@@ -83,12 +83,12 @@ extension TaskType {
 
     var tutorialShortcutTitle: String {
         switch self {
-        case .oilChange: return "Troca completa"
-        case .oilCheck: return "Verificação do nível"
-        case .waterCheck: return "Verificar a água do radiador"
-        case .brakeCheck: return "Verificar os freios"
-        case .tireCalibration: return "Calibragem correta"
-        case .batteryCheck: return "Verificar a bateria"
+        case .oilChange: return "Troca de Óleo"
+        case .oilCheck: return "Verificar o Nível do Óleo"
+        case .waterCheck: return "Verificar a Água do Radiador"
+        case .brakeCheck: return "Verificar os Freios"
+        case .tireCalibration: return "Calibrar o Pneu"
+        case .batteryCheck: return "Verificar a Bateria"
         }
     }
 }
