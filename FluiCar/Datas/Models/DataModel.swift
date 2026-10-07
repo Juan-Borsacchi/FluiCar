@@ -27,7 +27,7 @@ final class Cars {
     @Relationship(deleteRule: .cascade, inverse: \CarTask.car)
     var tasks: [CarTask] = []
     
-    init(id: UUID, photo: Data, name: String, brand: String, model: String, year: Int, fuel: String, fipeValue: String, kilometers: Int, insurance: Bool? = nil, alarm: Date? = nil, frequency: FrequencyType, tasks: [CarTask]) {
+    init(id: UUID, photo: Data, name: String, brand: String, model: String, year: Int, fuel: String, fipeValue: String, kilometers: Int, insurance: Bool? = nil, alarm: Date? = nil, frequency: FrequencyType, tasks: [CarTask] = []) {
         self.id = id
         self.photo = photo
         self.name = name
@@ -52,10 +52,9 @@ final class CarTask {
     var startDate: Date?
     var endDate: Date?
     var frequency: String?
-    
     var car: Cars?
     
-    init(id: UUID, title: String, textDescription: String? = nil, startDate: Date? = nil, endDate: Date? = nil, frequence: String? = nil, car: Cars? = nil) {
+    init(id: UUID, title: String, textDescription: String? = nil, startDate: Date? = nil, endDate: Date? = nil, frequency: String? = nil, car: Cars? = nil) {
         self.id = id
         self.title = title
         self.textDescription = textDescription

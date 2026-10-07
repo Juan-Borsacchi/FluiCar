@@ -94,6 +94,8 @@ final class CoordinatorCore: CoordinatorProtocol {
             MaintenanceView()
         case .tutorial(let taskType):
             TutorialView(taskType: taskType)
+        case .search:
+            SearchView()
         }
     }
 }

@@ -14,7 +14,7 @@ enum AppRoute: Hashable, Identifiable {
     case editTask(CarTaskModel)
     case task
     case tutorial(TaskType)
-
+    case search
     var id: String {
         String(describing: self)
     }
