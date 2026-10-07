@@ -14,6 +14,8 @@ enum AppRoute: Hashable, Identifiable {
     case editTask(CarTaskModel)
     case task
     case tutorial(TaskType)
+    case maintenanceDetail(MaintenanceTaskRef)
+//ISABELLA REFATORANDO QUE ELA CRIOU UMA VIEWMODEL
 
     var id: String {
         String(describing: self)

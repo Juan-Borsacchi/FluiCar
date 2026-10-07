@@ -4,566 +4,184 @@
 //
 //  Created by Isabella Avelina on 29/09/26.
 //
-
 import SwiftUI
 
-struct TutorialItem: Identifiable {
-    let id = UUID()
-    let title: String
-    let duration: String
-    let level: String
-    let taskType: TaskType
-}
-
 struct MaintenanceDetailView: View {
+    @State var viewModel: MaintenanceDetailViewModel
     @Environment(\.dismiss) private var dismiss
     @Environment(CoordinatorCore.self) private var coordinator
-
-    var taskTitle: String
-    var vehicleName: String
-    var dueDateText: String
-    var vehicles: [String]
-    var taskType: TaskType?
-    var taskKey: String?
-    var customTask: CustomTaskModel?
-    var onUpdateCustomTask: ((CustomTaskModel) -> Void)?
-
-    @State private var selectedOption: String = "Padrão"
-    @State private var lastCheckDate = Date()
-    @State private var nextCheckDate: Date =
-        Calendar.current.date(byAdding: .month, value: 3, to: Date()) ?? Date()
-
-    @State private var currentCustomTask: CustomTaskModel?
-    @State private var showEditSheet = false
-    
-    @State private var showRescheduleAlert = false
-
-    init(
-        taskTitle: String,
-        vehicleName: String,
-        dueDateText: String,
-        vehicles: [String] = [],
-        taskType: TaskType? = nil,
-        taskKey: String? = nil,
-        customTask: CustomTaskModel? = nil,
-        onUpdateCustomTask: ((CustomTaskModel) -> Void)? = nil
-    ) {
-        self.taskTitle = taskTitle
-        self.vehicleName = vehicleName
-        self.vehicles = vehicles
-        self.dueDateText = dueDateText
-        self.taskType = taskType
-        self.taskKey = taskKey
-        self.customTask = customTask
-        self.onUpdateCustomTask = onUpdateCustomTask
-        _currentCustomTask = State(initialValue: customTask)
-    }
-
-    private var normalizedTaskTitle: String {
-        taskTitle.folding(
-            options: [.diacriticInsensitive, .caseInsensitive],
-            locale: .current
-        )
-    }
-
-    private var inferredTaskType: TaskType? {
-        if let taskType { return taskType }
-        let title = normalizedTaskTitle
-        if title.contains("oleo") { return .oilChange }
-        if title.contains("radiador") || title.contains("agua") { return .waterCheck }
-        if title.contains("pneu") { return .tireCalibration }
-        if title.contains("freio") { return .brakeCheck }
-        if title.contains("bateria") { return .batteryCheck }
-        return nil
-    }
-
-    private var optionsList: [String] {
-           let title = normalizedTaskTitle
-
-           if title.contains("oleo") {
-               return [
-                   "Mineral",
-                   "Sintético",
-                   "Semi-sintético",
-                   "Mineral",
-                   "0W16",
-                   "0W20",
-                   "5W30",
-                   "5W40",
-                   "10W30",
-                   "10W40",
-                   "15W40",
-                   "20W50",
-                   "25W60"
-
-               ]
-           }
-
-           if title.contains("radiador") || title.contains("agua") {
-               return [
-                   "Água Desmineralizada + aditivada",
-                   "Água aditivada",
-                   "Mistura simples",
-                   "Apenas Água Desmineralizada"
-               ]
-           }
-
-           if title.contains("pneu") {
-               return [
-                   "Calibragem Padrão (30 PSI)",
-                   "Calibragem com Carga (32+ PSI)"
-               ]
-           }
-
-           if title.contains("bateria") {
-               return [
-                   "Bateria em bom estado",
-                   "Bateria precisa de teste"
-               ]
-           }
-
-           if title.contains("freio") {
-               return [
-                   "Desgaste normal",
-                   "Necessita avaliação"
-               ]
-           }
-
-           return [
-               "Verificação Padrão",
-               "Substituição Completa"
-           ]
-       }
-
-    private var subtitleLabel: String {
-        let title = normalizedTaskTitle
-
-        if title.contains("oleo") {
-            return "Tipo de óleo"
-        }
-
-        if title.contains("radiador") || title.contains("agua") {
-            return "Fluido utilizado"
-        }
-
-        if title.contains("pneu") {
-            return "Tipo de calibragem"
-        }
-
-        if title.contains("bateria") {
-            return "Estado da bateria"
-        }
-
-        if title.contains("freio") {
-            return "Estado dos freios"
-        }
-
-        return "Especificação"
-    }
-
-    private var tutorialsList: [TutorialItem] {
-        guard let activeTaskType = inferredTaskType else { return [] }
-
-        switch activeTaskType {
-        case .oilChange:
-            return [
-                TutorialItem(
-                    title: "Troca completa",
-                    duration: TaskType.oilChange.duration,
-                    level: TaskType.oilChange.level,
-                    taskType: .oilChange
-                ),
-                TutorialItem(
-                    title: "Verificação do nível",
-                    duration: TaskType.oilCheck.duration,
-                    level: TaskType.oilCheck.level,
-                    taskType: .oilCheck
-                )
-            ]
-
-        case .oilCheck:
-            return [
-                TutorialItem(
-                    title: "Verificação do nível",
-                    duration: TaskType.oilCheck.duration,
-                    level: TaskType.oilCheck.level,
-                    taskType: .oilCheck
-                ),
-                TutorialItem(
-                    title: "Troca completa",
-                    duration: TaskType.oilChange.duration,
-                    level: TaskType.oilChange.level,
-                    taskType: .oilChange
-                )
-            ]
-
-        case .waterCheck:
-            return [
-                TutorialItem(
-                    title: "Verificar a água do radiador",
-                    duration: TaskType.waterCheck.duration,
-                    level: TaskType.waterCheck.level,
-                    taskType: .waterCheck
-                )
-            ]
-
-        case .brakeCheck:
-            return [
-                TutorialItem(
-                    title: "Verificar os freios",
-                    duration: TaskType.brakeCheck.duration,
-                    level: TaskType.brakeCheck.level,
-                    taskType: .brakeCheck
-                )
-            ]
-
-        case .tireCalibration:
-            return [
-                TutorialItem(
-                    title: "Calibragem correta",
-                    duration: TaskType.tireCalibration.duration,
-                    level: TaskType.tireCalibration.level,
-                    taskType: .tireCalibration
-                )
-            ]
-
-        case .batteryCheck:
-            return [
-                TutorialItem(
-                    title: "Verificar a bateria",
-                    duration: TaskType.batteryCheck.duration,
-                    level: TaskType.batteryCheck.level,
-                    taskType: .batteryCheck
-                )
-            ]
-        }
-    }
-
-    private func completeTask() {
-        let calendar = Calendar.current
-        let today = Date()
-        let title = normalizedTaskTitle
-
-        lastCheckDate = today
-
-        if title.contains("radiador")
-            || title.contains("agua")
-            || title.contains("pneu")
-            || title.contains("calibrar")
-            || title.contains("bateria")
-            || title.contains("freio") {
-
-            nextCheckDate = calendar.date(
-                byAdding: .day,
-                value: 15,
-                to: today
-            ) ?? today
-
-        } else if title.contains("oleo") {
-            nextCheckDate = calendar.date(
-                byAdding: .month,
-                value: 6,
-                to: today
-            ) ?? today
-
-        } else {
-            nextCheckDate = calendar.date(
-                byAdding: .month,
-                value: 3,
-                to: today
-            ) ?? today
-        }
-        
-        if let key = taskKey {
-            MaintenanceReminderService.setDueDate(nextCheckDate, key: key, title: taskTitle, vehicle: vehicleName)
-        }
-    }
 
     var body: some View {
         ZStack {
             Color("Background")
                 .ignoresSafeArea()
 
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 20) {
-                    detailsSection
+            if viewModel.isMissing {
+                ContentUnavailableView(
+                    "Tarefa não encontrada",
+                    systemImage: "questionmark.folder",
+                    description: Text("Essa tarefa não existe mais.")
+                )
+            } else {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        detailsSection
 
-                    if customTask == nil && !tutorialsList.isEmpty {
-                        tutorialsSection
+                        if !viewModel.tutorials.isEmpty {
+                            tutorialsSection
+                        }
+
+                        finishButton
                     }
-
-                    finishButton
+                    .padding(.horizontal, 20)
+                    .padding(.top, 10)
+                    .padding(.bottom, 30)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 10)
-                .padding(.bottom, 30)
+                .scrollIndicators(.hidden)
             }
         }
+        .navigationTitle(viewModel.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
         .toolbar {
-            ToolbarItem(placement: .principal) {
-                HStack {
-                    Text(taskTitle)
-                        .font(.system(size: 24, weight: .semibold))
-                        .foregroundColor(.primary)
-
-                    Spacer()
-                }
-            }
-
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showEditSheet = true
-                } label: {
-                    Text("Editar")
-                        .font(.system(size: 17, weight: .semibold))
+                Button("Editar") {
+                    viewModel.beginEditing()
                 }
+                .fontWeight(.semibold)
+                .disabled(viewModel.isMissing)
             }
         }
-        .sheet(isPresented: $showEditSheet) {
+        .sheet(isPresented: $viewModel.isShowingEditSheet) {
             NavigationStack {
-                if let custom = currentCustomTask {
-                    AddCustomTaskView(vehicles: vehicles, taskToEdit: custom) { updatedTask in
-                        currentCustomTask = updatedTask
-                        onUpdateCustomTask?(updatedTask)
-                    }
-                } else {
-                    EditMaintenanceSheet(
-                        taskTitle: taskTitle,
-                        subtitleList: subtitleLabel,
-                        optionsList: optionsList,
-                        selectedOption: $selectedOption,
-                        lastCheckDate: $lastCheckDate,
-                        nextCheckDate: $nextCheckDate,
-                        onSave: {
-                            showEditSheet = false
-                        },
-                        onDismiss: {
-                            showEditSheet = false
-                        }
-                    )
-                }
+                editSheet
             }
         }
-        .alert("Tarefa Concluída!", isPresented: $showRescheduleAlert) {
+        .alert(viewModel.alertTitle, isPresented: $viewModel.isShowingAlert) {
             Button("OK", role: .cancel) {
-                dismiss()
+                if viewModel.dismissAfterAlert {
+                    dismiss()
+                }
             }
         } message: {
-            Text("A manutenção '\(taskTitle)' foi registada e a próxima data foi agendada.")
+            Text(viewModel.alertMessage)
+        }
+        .sensoryFeedback(.success, trigger: viewModel.completionCount)
+    }
+
+    // MARK: - Edição
+
+    @ViewBuilder
+    private var editSheet: some View {
+        if let custom = viewModel.customTask {
+            AddCustomTaskView(vehicles: viewModel.vehicles, taskToEdit: custom) { updatedTask in
+                viewModel.saveCustomTask(updatedTask)
+            }
+        } else {
+            EditMaintenanceSheet(viewModel: viewModel)
         }
     }
+
+    // MARK: - Detalhes
 
     private var detailsSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Detalhes da Tarefa")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.primary)
+                .font(.headline)
 
             VStack(alignment: .leading, spacing: 16) {
-                if let custom = currentCustomTask {
-                    HStack {
-                        Text("Veículo")
-                            .foregroundColor(.primary)
+                ForEach(Array(viewModel.detailRows.enumerated()), id: \.element.id) { index, row in
+                    if index > 0 {
+                        Divider()
+                    }
+
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(row.label)
 
                         Spacer()
 
-                        Text(custom.vehicleName)
+                        Text(row.value)
                             .fontWeight(.medium)
-                            .foregroundColor(.secondary)
-                    }
-
-                    Divider()
-
-                    HStack {
-                        Text("Alarme")
-                            .foregroundColor(.primary)
-
-                        Spacer()
-
-                        Text(
-                            custom.alarmDate.formatted(
-                                date: .abbreviated,
-                                time: .shortened
-                            )
-                        )
-                        .fontWeight(.medium)
-                        .foregroundColor(.secondary)
-                    }
-
-                    Divider()
-
-                    HStack {
-                        Text("Frequência")
-                            .foregroundColor(.primary)
-
-                        Spacer()
-
-                        Text(custom.frequency)
-                            .fontWeight(.medium)
-                            .foregroundColor(.secondary)
-                    }
-                } else {
-                    HStack {
-                        Text("Veículo")
-                            .font(.system(size: 16))
-                            .foregroundColor(.primary)
-
-                        Spacer()
-
-                        Text(vehicleName)
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
-
-                    Divider()
-
-                    HStack {
-                        Text(subtitleLabel)
-                            .font(.system(size: 16))
-                            .foregroundColor(.primary)
-
-                        Spacer()
-
-                        Text(selectedOption)
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
-
-                    Divider()
-
-                    HStack {
-                        Text("Última checagem")
-                            .font(.system(size: 16))
-                            .foregroundColor(.primary)
-
-                        Spacer()
-
-                        Text(
-                            lastCheckDate.formatted(
-                                date: .abbreviated,
-                                time: .omitted
-                            )
-                        )
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.secondary)
-                    }
-
-                    Divider()
-
-                    HStack {
-                        Text("Próxima checagem")
-                            .font(.system(size: 16))
-                            .foregroundColor(.primary)
-
-                        Spacer()
-
-                        Text(
-                            nextCheckDate.formatted(
-                                date: .abbreviated,
-                                time: .omitted
-                            )
-                        )
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.trailing)
                     }
                 }
             }
             .padding(13)
-            .background(Color(.systemGray).opacity(0.2))
-            .cornerRadius(20)
+            .background(Color(.systemGray).opacity(0.2), in: .rect(cornerRadius: 20))
 
-            if let custom = currentCustomTask, !custom.note.isEmpty {
+            if let note = viewModel.noteText {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Anotação")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.primary)
+                        .font(.subheadline.weight(.semibold))
 
-                    Text(custom.note)
-                        .font(.system(size: 15))
-                        .foregroundColor(.secondary)
+                    Text(note)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
                 .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(.systemGray6))
-                .cornerRadius(16)
-            } else if customTask == nil {
-                Text(
-                    "• A frequência é uma estimativa. " +
-                    "É recomendado verificar conforme a utilização do veículo."
-                )
-                .font(.system(size: 15))
-                .foregroundColor(.secondary)
-                .padding(.horizontal, 4)
+                .background(Color(.systemGray6), in: .rect(cornerRadius: 16))
+            }
+
+            if let footnote = viewModel.footnote {
+                Text(footnote)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 4)
             }
         }
-        .padding(20)
-        .glassEffect(.regular, in: .rect(cornerRadius: 16))
-        .cornerRadius(20)
-        .overlay {
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-        }
+        .detailCardStyle()
     }
+
+    // MARK: - Tutoriais
 
     private var tutorialsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Tutoriais")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.primary)
+                .font(.headline)
 
             Text("Aprenda a realizar a manutenção de forma segura.")
-                .font(.system(size: 14))
-                .foregroundColor(.secondary)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
 
-            ScrollView(.horizontal, showsIndicators: false) {
+            ScrollView(.horizontal) {
                 HStack(spacing: 16) {
-                    ForEach(tutorialsList) { tutorial in
-                        tutorialCard(for: tutorial)
+                    ForEach(viewModel.tutorials) { type in
+                        tutorialCard(for: type)
                     }
                 }
                 .padding(.vertical, 4)
             }
+            .scrollIndicators(.hidden)
         }
-        .padding(20)
-        .glassEffect(.regular, in: .rect(cornerRadius: 16))
-        .cornerRadius(20)
-        .overlay {
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-        }
+        .detailCardStyle()
     }
 
-    @ViewBuilder
-    private func tutorialCard(for tutorial: TutorialItem) -> some View {
+    private func tutorialCard(for type: TaskType) -> some View {
         Button {
-            coordinator.push(.tutorial(tutorial.taskType))
+            coordinator.push(.tutorial(type))
         } label: {
             VStack(alignment: .leading, spacing: 0) {
-                TutorialImageView(
-                    image: tutorial.taskType.tutorialData.introImage
-                )
-                .frame(width: 190, height: 100)
-                .clipped()
+                TutorialImageView(image: type.tutorialData.introImage)
+                    .frame(width: 190, height: 100)
+                    .clipped()
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(tutorial.title)
-                        .font(.system(size: 16))
-                        .foregroundColor(.primary)
+                    Text(type.tutorialShortcutTitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
                         .lineLimit(1)
 
-                    Text("\(tutorial.duration) • \(tutorial.level)")
-                        .font(.system(size: 14))
-                        .foregroundColor(.secondary)
+                    Text("\(type.duration) • \(type.level)")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
                 .padding(14)
             }
             .frame(width: 190)
             .glassEffect(.regular, in: .rect(cornerRadius: 16))
-            .cornerRadius(16)
+            .clipShape(.rect(cornerRadius: 16))
             .overlay {
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(Color.gray.opacity(0.2), lineWidth: 1)
@@ -572,75 +190,75 @@ struct MaintenanceDetailView: View {
         .buttonStyle(.plain)
     }
 
+    // MARK: - Botão principal
+
     private var finishButton: some View {
         Button {
-            if customTask == nil {
-                completeTask()
+            if viewModel.isCustom {
+                dismiss()
+            } else {
+                viewModel.completeTask()
             }
-            
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
-            showRescheduleAlert = true
-            
         } label: {
-            Text(
-                customTask == nil
-                ? "Tarefa concluída"
-                : "Concluir Visualização"
-            )
-            .font(.system(size: 16, weight: .semibold))
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .metallicBackground()
-            .clipShape(Capsule())
+            Text(viewModel.isCustom ? "Concluir Visualização" : "Tarefa concluída")
+                .font(.headline)
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .metallicBackground()
+                .clipShape(Capsule())
         }
-        .padding(.top, 90)
+        .padding(.top, 48)
     }
 }
 
-struct EditMaintenanceSheet: View {
-    var taskTitle: String
-    var subtitleList: String
-    var optionsList: [String]
+// MARK: - Estilo dos cartões
 
-    @Binding var selectedOption: String
-    @Binding var lastCheckDate: Date
-    @Binding var nextCheckDate: Date
+private extension View {
+    func detailCardStyle() -> some View {
+        self
+            .padding(20)
+            .glassEffect(.regular, in: .rect(cornerRadius: 20))
+            .overlay {
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+            }
+    }
+}
 
-    var onSave: () -> Void
-    var onDismiss: () -> Void
+// MARK: - Sheet de edição (tarefa automática)
+
+private struct EditMaintenanceSheet: View {
+    @Bindable var viewModel: MaintenanceDetailViewModel
 
     var body: some View {
         Form {
-            Section(header: Text("Atualizar Informações")) {
-                Picker(subtitleList, selection: $selectedOption) {
-                    ForEach(optionsList, id: \.self) { option in
-                        Text(option)
-                            .tag(option)
+            Section("Atualizar Informações") {
+                Picker(viewModel.optionsTitle, selection: $viewModel.draftOption) {
+                    ForEach(viewModel.options, id: \.self) { option in
+                        Text(option).tag(option)
                     }
                 }
 
                 DatePicker(
                     "Última checagem",
-                    selection: $lastCheckDate,
+                    selection: $viewModel.draftLastCheck,
                     displayedComponents: .date
                 )
 
                 DatePicker(
                     "Próxima checagem",
-                    selection: $nextCheckDate,
+                    selection: $viewModel.draftNextCheck,
                     displayedComponents: .date
                 )
             }
         }
-        .navigationTitle("Editar \(taskTitle)")
+        .navigationTitle("Editar \(viewModel.title)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             CustomSheetHeader(
-                onDismiss: onDismiss,
-                onSave: onSave,
-                isSaveDisabled: false
+                onDismiss: { viewModel.cancelEditing() },
+                onSave: { viewModel.saveEditing() }
             )
         }
     }
@@ -649,10 +267,7 @@ struct EditMaintenanceSheet: View {
 #Preview {
     NavigationStack {
         MaintenanceDetailView(
-            taskTitle: "Troca de óleo",
-            vehicleName: "Honda Civic",
-            dueDateText: "Próxima: 10 de outubro",
-            taskType: .oilChange
+            viewModel: MaintenanceDetailViewModel(ref: .automatic(UUID()))
         )
         .environment(CoordinatorCore())
     }

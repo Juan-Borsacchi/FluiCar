@@ -12,6 +12,7 @@ import Observation
 class AddVehicleViewModel {
     private let service: any VehicleServiceProtocol
     private let dataBase: any VehicleRepositoryProtocol
+    private let maintenance: MaintenanceService
     
     var isInitialLoading = false
     var isLoading = false
@@ -56,9 +57,10 @@ class AddVehicleViewModel {
     var carUIImage: UIImage?
     var didRemovePhoto = false
 
-    init(car: CarModel? = nil, service: (any VehicleServiceProtocol)? = nil, dataBase: any VehicleRepositoryProtocol? = nil) {
+    init(car: CarModel? = nil, service: (any VehicleServiceProtocol)? = nil, dataBase: (any VehicleRepositoryProtocol)? = nil, maintenance: MaintenanceService? = nil) {
         self.service = service ?? ParallelumService()
         self.dataBase = dataBase ?? DataService.shared
+        self.maintenance = maintenance ?? MaintenanceService.shared
         self.carToEdit = car
         
         if let car = car {
@@ -202,6 +204,7 @@ class AddVehicleViewModel {
                 }
                 
                 try await dataBase.update(updatedCar)
+                await maintenance.syncInsuranceTask(for: updatedCar)
                 isLoading = false
                 print("Data updated")
                 return updatedCar
@@ -237,6 +240,7 @@ class AddVehicleViewModel {
                 )
                 
                 try await dataBase.save(vehicleToSave)
+                await maintenance.syncInsuranceTask(for: vehicleToSave)
                 isLoading = false
                 print("Data saved")
                 return vehicleToSave
