@@ -94,6 +94,10 @@ final class CoordinatorCore: CoordinatorProtocol {
             MaintenanceView()
         case .tutorial(let taskType):
             TutorialView(taskType: taskType)
+        case .terms:
+            LegalDocumentView(viewModel: LegalDocumentViewModel(documentType: .termsOfUse))
+        case .privacy:
+            LegalDocumentView(viewModel: LegalDocumentViewModel(documentType: .privacyPolicy))
         case .search:
             SearchView()
         case .maintenanceDetail(let ref):
