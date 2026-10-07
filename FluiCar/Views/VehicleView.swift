@@ -290,11 +290,13 @@ struct VehicleView: View {
                 .padding(.leading)
                 .padding(.top)
             
-            if viewModel.car.tasks.isEmpty {
+            // Isabella mudou pq viewModel.car.tasks nunca é preenchido (a lista ficava sempre vazia)
+            // e pra ler viewModel.upcomingTasks, que vem do MaintenanceService (tarefas reais do carro).
+            if viewModel.upcomingTasks.isEmpty {
                 emptyTasksView
             } else {
-                ForEach(viewModel.car.tasks, id: \.id) { task in
-                    taskRow(for: task)
+                ForEach(viewModel.upcomingTasks) { row in
+                    taskRow(for: row)
                 }
             }
         }
@@ -319,31 +321,20 @@ struct VehicleView: View {
         .padding(.vertical, 32)
     }
     
-    private func taskRow(for task: CarTaskModel) -> some View {
-        let dueDateText = task.endDate?
-            .formatted(
-                date: .abbreviated,
-                time: .omitted
-            ) ?? "Sem data"
-        
-        return ZStack(alignment: .leading) {
-            NavigationLink {
-                MaintenanceDetailView(
-                    taskTitle: task.title,
-                    vehicleName: viewModel.car.name,
-                    dueDateText: dueDateText
-                )
-            } label: {
-                EmptyView()
-            }
-            .opacity(0)
-            
+    // Isabella mudou pq o MaintenanceDetailView antigo (taskTitle/vehicleName/dueDateText) não existe mais,
+    // e o NavigationLink com .opacity(0) quebrava a acessibilidade; pra receber um MaintenanceRow
+    // e navegar pelo Coordinator (.maintenanceDetail), igual ao resto do app.
+    private func taskRow(for row: MaintenanceRow) -> some View {
+        Button {
+            coordinator.push(.maintenanceDetail(row.ref))
+        } label: {
             TaskCard(
-                title: task.title,
-                vehicle: viewModel.car.name,
-                dueDate: dueDateText
+                title: row.title,
+                vehicle: row.vehicleName,
+                dueDate: row.dueText
             )
         }
+        .buttonStyle(.plain)
         .padding(.horizontal)
     }
 }

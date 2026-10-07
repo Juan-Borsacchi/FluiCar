@@ -96,6 +96,8 @@ final class CoordinatorCore: CoordinatorProtocol {
             TutorialView(taskType: taskType)
         case .search:
             SearchView()
+        case .maintenanceDetail(let ref):
+            MaintenanceDetailView(viewModel: MaintenanceDetailViewModel(ref: ref))
         }
     }
 }
