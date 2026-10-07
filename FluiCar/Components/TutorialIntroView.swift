@@ -48,8 +48,9 @@ struct TutorialIntroView: View {
                         }
                         .padding(12)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(.systemBackground))
+                        .background(Color(.systemGray6))
                         .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .glassEffect(.regular,  in: .rect(cornerRadius: 20))
                     }
                     
                     if let note = tutorial.introNote {

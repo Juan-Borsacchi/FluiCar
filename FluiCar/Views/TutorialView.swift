@@ -42,16 +42,22 @@ struct TutorialView: View {
             }
         }
         .alert(
-            "AVISO",
+            "Atenção: risco de manutenção",
             isPresented: $viewModel.showWarning
         ) {
-            Button("Confirmar", role: .cancel) {
+            Button("Li e entendi", role: .cancel) {
                 viewModel.confirmWarning()
             }
         } message: {
             Text(viewModel.currentWarningText)
         }
+        .onChange(of: viewModel.showWarning) { _, isPresented in
+            guard isPresented else { return }
+
+            HapticManager.shared.warning()
+        }
         .task {
+            _ = HapticManager.shared
             viewModel.prepareTutorial(for: taskType)
         }
         .onChange(of: viewModel.didFinish) { _, didFinish in
