@@ -23,13 +23,12 @@ struct TutorialCard: View {
                 .foregroundColor(.secondary)
         }
         .padding(14)
-        .frame(width: 190)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .glassEffect(.regular, in: .rect(cornerRadius: 16))
         .cornerRadius(16)
         .overlay {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color.gray.opacity(0.2), lineWidth: 1)
         }
-       
     }
 }
