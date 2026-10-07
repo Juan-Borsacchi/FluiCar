@@ -47,14 +47,18 @@ final class Cars {
 @Model
 final class CarTask {
     @Attribute(.unique) var id: UUID
-    var title: String
-    var textDescription: String?
-    var startDate: Date?
-    var endDate: Date?
-    var frequency: String?
-    var car: Cars?
+        var title: String
+        var textDescription: String?
+        var startDate: Date?
+        var endDate: Date?
+        var frequency: String?
+        var car: Cars?
+        var isAutomatic: Bool
+        var automaticTypeIdentifier: String?
+        var lastCheckDate: Date?
+        var selectedOption: String?
     
-    init(id: UUID, title: String, textDescription: String? = nil, startDate: Date? = nil, endDate: Date? = nil, frequency: String? = nil, car: Cars? = nil) {
+    init(id: UUID, title: String, textDescription: String? = nil, startDate: Date? = nil, endDate: Date? = nil, frequency: String? = nil, car: Cars? = nil, isAutomatic: Bool, automaticTypeIdentifier: String? = nil, lastCheckDate: Date? = nil, selectedOption: String? = nil) {
         self.id = id
         self.title = title
         self.textDescription = textDescription
@@ -62,5 +66,9 @@ final class CarTask {
         self.endDate = endDate
         self.frequency = frequency
         self.car = car
+        self.isAutomatic = isAutomatic
+        self.automaticTypeIdentifier = automaticTypeIdentifier
+        self.lastCheckDate = lastCheckDate
+        self.selectedOption = selectedOption
     }
 }

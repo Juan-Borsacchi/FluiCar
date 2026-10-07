@@ -10,39 +10,63 @@ import Observation
 @MainActor
 @Observable
 class SearchViewModel {
-    private let dataBase: any VehicleRepositoryProtocol
+    private let service: MaintenanceService
     var searchText: String = ""
     
-    var allCars: [CarModel] = []
-    var allTasks: [CarTaskModel] = []
-    var allTutorials: [TutorialItem] = []
+    init(service: MaintenanceService? = nil) {
+        self.service = service ?? MaintenanceService.shared
+    }
     
-    init(dataBase: any VehicleRepositoryProtocol) {
-            self.dataBase = dataBase
-        }
+    var allCars: [CarModel] {
+        service.cars
+    }
+    
+    var allTasks: [CarTaskModel] {
+        service.cars.flatMap { $0.tasks }
+    }
+    
+    var allTutorials: [TaskType] {
+        TaskType.automaticTypes
+    }
+    
     var filtredCars: [CarModel] {
-        if searchText.isEmpty {return allCars}
-        return allCars.filter {$0.name.localizedCaseInsensitiveContains(searchText) || $0.brand.localizedCaseInsensitiveContains(searchText)}
+        if searchText.isEmpty { return allCars }
+        return allCars.filter {
+            $0.name.localizedStandardContains(searchText) ||
+            $0.brand.localizedStandardContains(searchText)
+        }
     }
-    var filtredTasks: [CarTaskModel] {
-        if searchText.isEmpty {return allTasks}
-        return allTasks.filter{$0.title.localizedCaseInsensitiveContains(searchText)}
-    }
-    var filtredTutorials: [TutorialItem] {
-        if searchText.isEmpty {return allTutorials}
-        return allTutorials.filter{$0.title.localizedCaseInsensitiveContains(searchText)}
-    }
-    func loadData() async {
-        do {
-            let loadedVehicles = try await dataBase.fetchAll()
-            self.allCars = loadedVehicles
-            var allTasksExtracted: [CarTaskModel] = []
-            for vehicle in loadedVehicles {
-                allTasksExtracted.append(contentsOf: vehicle.tasks)
+    
+    var filtredTasks: [MaintenanceRow] {
+            let customTasks = service.cars.flatMap { $0.tasks }.filter { $0.isAutomatic == false }
+            let filteredCustom = searchText.isEmpty ? customTasks : customTasks.filter {
+                $0.title.localizedStandardContains(searchText) ||
+                $0.vehicleName.localizedStandardContains(searchText) ||
+                ($0.textDescription?.localizedStandardContains(searchText) == true)
             }
-            self.allTasks = allTasksExtracted
-        }catch{
-            print("Heavy error on search: \(error)")
+            let customRows = filteredCustom.map { MaintenanceRow(task: $0) }
+            
+            let automaticTasks = service.automaticTasks
+            let filteredAuto = searchText.isEmpty ? automaticTasks : automaticTasks.filter { task in
+                let carName = service.carName(for: task.carID) ?? ""
+                return task.type.maintenanceTitle.localizedStandardContains(searchText) ||
+                       carName.localizedStandardContains(searchText)
+            }
+            let autoRows = filteredAuto.compactMap { service.automaticRow(for: $0) }
+            
+            return customRows + autoRows
+        }
+    
+    var filtredTutorials: [TaskType] {
+        if searchText.isEmpty { return allTutorials }
+        return allTutorials.filter {
+            $0.tutorialShortcutTitle.localizedStandardContains(searchText)
+        }
+    }
+    
+    func loadData() async {
+        if !service.hasLoaded {
+            await service.load()
         }
     }
 }

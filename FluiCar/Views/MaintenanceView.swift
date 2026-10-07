@@ -21,12 +21,18 @@ struct MaintenanceView: View {
         .toolbar { toolbarContent }
         .task { await viewModel.load() }
         .sheet(isPresented: $viewModel.isShowingAddSheet) {
-            NavigationStack {
-                AddCustomTaskView(vehicles: viewModel.vehicles) { newTask in
-                    viewModel.saveNewTask(newTask)
+                    NavigationStack {
+                        AddCustomTaskView(vehicles: viewModel.vehicles) { newTask in
+                            if let selectedCar = viewModel.vehicles.first(where: { $0.name == newTask.vehicleName }) {
+                                viewModel.saveNewTask(newTask, to: selectedCar)
+                            } else {
+                                if let firstCar = viewModel.vehicles.first {
+                                    viewModel.saveNewTask(newTask, to: firstCar)
+                                }
+                            }
+                        }
+                    }
                 }
-            }
-        }
         .alert("Aviso", isPresented: $viewModel.isShowingAlert) {
             Button("OK", role: .cancel) { }
         } message: {

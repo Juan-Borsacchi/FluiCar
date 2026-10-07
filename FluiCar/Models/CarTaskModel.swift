@@ -15,7 +15,11 @@ struct CarTaskModel: Identifiable, Hashable {
     var endDate: Date?
     var frequency: String?
     var vehicleName: String
-    
+    var isAutomatic: Bool = false
+    var automaticTypeIdentifier: String? = nil
+    var lastCheckDate: Date? = nil
+    var selectedOption: String? = nil
+    var isInsurance: Bool? = nil
 }
 
 

@@ -177,7 +177,8 @@ extension CarModel {
                 textDescription: task.textDescription,
                 startDate: task.startDate,
                 endDate: task.endDate,
-                frequency: task.frequency
+                frequency: task.frequency,
+                isAutomatic: task.isAutomatic
             )
         }
         
@@ -207,7 +208,8 @@ extension CarTaskModel {
             textDescription: self.textDescription,
             startDate: self.startDate,
             endDate: self.endDate,
-            frequency: self.frequency
+            frequency: self.frequency,
+            isAutomatic: self.isAutomatic
         )
     }
 }
