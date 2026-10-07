@@ -98,6 +98,10 @@ final class CoordinatorCore: CoordinatorProtocol {
             LegalDocumentView(viewModel: LegalDocumentViewModel(documentType: .termsOfUse))
         case .privacy:
             LegalDocumentView(viewModel: LegalDocumentViewModel(documentType: .privacyPolicy))
+        case .search:
+            SearchView()
+        case .maintenanceDetail(let ref):
+            MaintenanceDetailView(viewModel: MaintenanceDetailViewModel(ref: ref))
         }
     }
 }

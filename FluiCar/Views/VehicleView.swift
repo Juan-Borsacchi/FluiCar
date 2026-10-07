@@ -11,7 +11,7 @@ import SwiftUI
 struct VehicleView: View {
     @State var viewModel: VehicleViewModel
     @State private var deleteAlert = false
-    
+    @State private var showChangeAlert = false
     @Environment(CoordinatorCore.self) private var coordinator
     
     var body: some View {
@@ -24,6 +24,7 @@ struct VehicleView: View {
                     vehicleInformationSection
                     upcomingTasksSection
                 }
+                .padding(.horizontal)
             }
         }
         .toolbar(.hidden, for: .tabBar)
@@ -96,9 +97,9 @@ struct VehicleView: View {
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundStyle(.white)
-                    .padding(.top, 4)
+                    .padding(.top, 12)
                 
-                Text("Ano do Modelo: \(viewModel.car.year)")
+                Text("Ano do Modelo: \(viewModel.car.year == 32000 ? "Zero KM" : String(viewModel.car.year))")
                     .font(.caption)
                     .foregroundStyle(.white)
                 
@@ -106,7 +107,7 @@ struct VehicleView: View {
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundStyle(.white)
-                    .padding(.top, 4)
+                    .padding(.top, 8)
                 
                 fipeInformationCard
                 
@@ -131,26 +132,73 @@ struct VehicleView: View {
                         name: "Combustível",
                         information: viewModel.car.fuel
                     )
+                    Button {
+                        showChangeAlert = true
+                    }label: {
+                        ZStack(alignment: .topTrailing){
+                            InformationsCard(
+                                logo: "gauge.open.with.lines.needle.33percent",
+                                name: "Quilometragem",
+                                information: "\(viewModel.car.kilometers) km"
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .stroke(Color.blue, lineWidth: 1.5)
+                            )
+                            Group{
+                                HStack(spacing: 2){
+                                    Text("Ajustar")
+                                    Image(systemName: "chevron.right")
+                                    
+                                }
+                                .font(.caption2)
+                                .foregroundStyle(Color.blue)
+                            }
+                            .padding(.trailing)
+                            .padding(.top)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .alert("Quilometragem", isPresented: $showChangeAlert) {
+                        TextField("Nova quilometragem", text: $viewModel.car.kilometers)
+                            .keyboardType(.numberPad)
+                            .onChange(of: viewModel.car.kilometers) { _, newValue in
+                                viewModel.car.kilometers = viewModel.textLimit(text: newValue, limit: 7)
+                            }
+                        
+                        Button("Cancelar", role: .cancel) {
+                        }
+                        
+                        Button("Pronto", role: .confirm) {
+                            Task {
+                                if !viewModel.car.kilometers.isEmpty  {
+                                    await viewModel.updateKilometers()
+                                }else{
+                                    viewModel.car.kilometers = "0"
+                                    await viewModel.updateKilometers()
+                                }
+                                print("Quilometragem atualizada para: \(viewModel.car.kilometers)")
+                            }
+                        }
+//                        .keyboardShortcut(.defaultAction)
+//                        Deixa vermelho
+                    }message: {
+                        Text("Insira o novo valor de quilometragem do seu automóvel.")
+                    }
+                
                     
-                    InformationsCard(
-                        logo: "gauge.open.with.lines.needle.33percent",
-                        name: "Quilometragem",
-                        information: "\(viewModel.car.kilometers) km"
-                    )
                 }
                 .padding(.vertical, 4)
             }
         }
-        .padding()
-        .frame(
-            minWidth: 350,
-            maxWidth: .infinity,
-            minHeight: 500,
-            maxHeight: .infinity,
-            alignment: .top
-        )
+        .padding(.vertical)
+        .padding(.horizontal, 8)
         .metallicBackground()
-        .padding(.horizontal, 5)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+      
+        
+        
+        
     }
     
     // MARK: - Foto do veículo
@@ -218,16 +266,13 @@ struct VehicleView: View {
             
             Spacer()
             
-            Text("\(viewModel.car.fipeValue) R$")
+            Text("\(viewModel.car.fipeValue)")
                 .font(.footnote)
                 .foregroundStyle(.gray)
         }
         .padding()
-        .frame(
-            maxWidth: .infinity,
-            minHeight: 51,       
-            alignment: .leading
-        )
+        
+        .frame(minWidth: 181, maxWidth: .infinity,minHeight: 50,maxHeight: .infinity ,alignment: .leading)
         .background(Color.white)
         .clipShape(
             RoundedRectangle(cornerRadius: 17.5)
@@ -245,11 +290,13 @@ struct VehicleView: View {
                 .padding(.leading)
                 .padding(.top)
             
-            if viewModel.car.tasks.isEmpty {
+            // Isabella mudou pq viewModel.car.tasks nunca é preenchido (a lista ficava sempre vazia)
+            // e pra ler viewModel.upcomingTasks, que vem do MaintenanceService (tarefas reais do carro).
+            if viewModel.upcomingTasks.isEmpty {
                 emptyTasksView
             } else {
-                ForEach(viewModel.car.tasks, id: \.id) { task in
-                    taskRow(for: task)
+                ForEach(viewModel.upcomingTasks) { row in
+                    taskRow(for: row)
                 }
             }
         }
@@ -274,31 +321,20 @@ struct VehicleView: View {
         .padding(.vertical, 32)
     }
     
-    private func taskRow(for task: CarTaskModel) -> some View {
-        let dueDateText = task.endDate?
-            .formatted(
-                date: .abbreviated,
-                time: .omitted
-            ) ?? "Sem data"
-        
-        return ZStack(alignment: .leading) {
-            NavigationLink {
-                MaintenanceDetailView(
-                    taskTitle: task.title,
-                    vehicleName: viewModel.car.name,
-                    dueDateText: dueDateText
-                )
-            } label: {
-                EmptyView()
-            }
-            .opacity(0)
-            
+    // Isabella mudou pq o MaintenanceDetailView antigo (taskTitle/vehicleName/dueDateText) não existe mais,
+    // e o NavigationLink com .opacity(0) quebrava a acessibilidade; pra receber um MaintenanceRow
+    // e navegar pelo Coordinator (.maintenanceDetail), igual ao resto do app.
+    private func taskRow(for row: MaintenanceRow) -> some View {
+        Button {
+            coordinator.push(.maintenanceDetail(row.ref))
+        } label: {
             TaskCard(
-                title: task.title,
-                vehicle: viewModel.car.name,
-                dueDate: dueDateText
+                title: row.title,
+                vehicle: row.vehicleName,
+                dueDate: row.dueText
             )
         }
+        .buttonStyle(.plain)
         .padding(.horizontal)
     }
 }

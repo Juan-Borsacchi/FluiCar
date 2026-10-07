@@ -27,7 +27,7 @@ final class Cars {
     @Relationship(deleteRule: .cascade, inverse: \CarTask.car)
     var tasks: [CarTask] = []
     
-    init(id: UUID, photo: Data, name: String, brand: String, model: String, year: Int, fuel: String, fipeValue: String, kilometers: Int, insurance: Bool? = nil, alarm: Date? = nil, frequency: FrequencyType, tasks: [CarTask]) {
+    init(id: UUID, photo: Data, name: String, brand: String, model: String, year: Int, fuel: String, fipeValue: String, kilometers: Int, insurance: Bool? = nil, alarm: Date? = nil, frequency: FrequencyType, tasks: [CarTask] = []) {
         self.id = id
         self.photo = photo
         self.name = name
@@ -47,15 +47,18 @@ final class Cars {
 @Model
 final class CarTask {
     @Attribute(.unique) var id: UUID
-    var title: String
-    var textDescription: String?
-    var startDate: Date?
-    var endDate: Date?
-    var frequency: String?
+        var title: String
+        var textDescription: String?
+        var startDate: Date?
+        var endDate: Date?
+        var frequency: String?
+        var car: Cars?
+        var isAutomatic: Bool
+        var automaticTypeIdentifier: String?
+        var lastCheckDate: Date?
+        var selectedOption: String?
     
-    var car: Cars?
-    
-    init(id: UUID, title: String, textDescription: String? = nil, startDate: Date? = nil, endDate: Date? = nil, frequence: String? = nil, car: Cars? = nil) {
+    init(id: UUID, title: String, textDescription: String? = nil, startDate: Date? = nil, endDate: Date? = nil, frequency: String? = nil, car: Cars? = nil, isAutomatic: Bool, automaticTypeIdentifier: String? = nil, lastCheckDate: Date? = nil, selectedOption: String? = nil) {
         self.id = id
         self.title = title
         self.textDescription = textDescription
@@ -63,5 +66,9 @@ final class CarTask {
         self.endDate = endDate
         self.frequency = frequency
         self.car = car
+        self.isAutomatic = isAutomatic
+        self.automaticTypeIdentifier = automaticTypeIdentifier
+        self.lastCheckDate = lastCheckDate
+        self.selectedOption = selectedOption
     }
 }

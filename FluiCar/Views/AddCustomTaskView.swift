@@ -2,93 +2,114 @@
 //  AddCustomTaskView.swift
 //  FluiCar
 //
-//  Created by Assistente on 01/10/26.
-//
+//  Created by Isabella Avelina on 01/10/26.
 
 import SwiftUI
 
 struct AddCustomTaskView: View {
-    @Environment(\.dismiss) var dismiss
-    
-    // Callbacks para retornar a tarefa criada ou editada
-    var onSave: (CustomTaskModel) -> Void
-    var taskToEdit: CustomTaskModel?
-    
-    @State private var selectedVehicle: String = "Meu Carro"
-    @State private var taskTitle: String = ""
-    @State private var taskNote: String = ""
-    @State private var alarmDate: Date = Date()
-    @State private var frequency: String = "Nunca"
-    
-    private let vehiclesList = ["Meu Carro", "Batmóvel", "Outro Veículo"]
-    private let frequenciesList = ["Nunca", "Diária", "Semanal", "Mensal", "Anual"]
-    
-    init(taskToEdit: CustomTaskModel? = nil, onSave: @escaping (CustomTaskModel) -> Void) {
+    @Environment(\.dismiss) private var dismiss
+
+    private let vehicles: [CarModel]
+    private let taskToEdit: CarTaskModel?
+    private let onSave: (CarTaskModel) -> Void
+
+    @State private var selectedVehicleID: UUID?
+    @State private var title: String
+    @State private var note: String
+    @State private var alarmDate: Date
+    @State private var frequency: ReminderRepeat
+
+    init(
+        vehicles: [CarModel],
+        taskToEdit: CarTaskModel? = nil,
+        onSave: @escaping (CarTaskModel) -> Void
+    ) {
+        self.vehicles = vehicles
         self.taskToEdit = taskToEdit
         self.onSave = onSave
+
+        let matchingCar = vehicles.first(where: { $0.name == taskToEdit?.vehicleName })
+        _selectedVehicleID = State(initialValue: matchingCar?.id ?? vehicles.first?.id)
         
-        if let task = taskToEdit {
-            _selectedVehicle = State(initialValue: task.vehicleName)
-            _taskTitle = State(initialValue: task.title)
-            _taskNote = State(initialValue: task.note)
-            _alarmDate = State(initialValue: task.alarmDate)
-            _frequency = State(initialValue: task.frequency)
+        _title = State(initialValue: taskToEdit?.title ?? "")
+        _note = State(initialValue: taskToEdit?.textDescription ?? "")
+        _alarmDate = State(initialValue: taskToEdit?.endDate ?? taskToEdit?.startDate ?? Date())
+        
+        let initialFreq: ReminderRepeat
+        if let freqString = taskToEdit?.frequency, let enumValue = ReminderRepeat(rawValue: freqString) {
+            initialFreq = enumValue
+        } else {
+            initialFreq = .never
         }
+        _frequency = State(initialValue: initialFreq)
     }
-    
+
+    private var trimmedTitle: String {
+        title.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var canSave: Bool {
+        !trimmedTitle.isEmpty && selectedVehicleID != nil
+    }
+
     var body: some View {
         Form {
-            // Secção de Seleção de Veículo
             Section {
-                Picker("Selecione o Veículo", selection: $selectedVehicle) {
-                    ForEach(vehiclesList, id: \.self) { vehicle in
-                        Text(vehicle).tag(vehicle)
+                Picker("Selecione o Veículo", selection: $selectedVehicleID) {
+                    ForEach(vehicles) { car in
+                        Text(car.name).tag(Optional(car.id))
                     }
                 }
                 .pickerStyle(.menu)
             }
-            
-            // Título da Tarefa
-            Section(header: Text("Titulo da Tarefa")) {
-                TextField("Digite aqui o titulo da tarefa", text: $taskTitle)
+
+            Section("Título da Tarefa") {
+                TextField("Digite aqui o título da tarefa", text: $title)
             }
-            
-            // Anotação / Conteúdo
-            Section(header: Text("Anotação")) {
-                TextEditor(text: $taskNote)
+
+            Section("Anotação") {
+                TextEditor(text: $note)
                     .frame(height: 100)
             }
-            
-            // Lembrete (Alarme e Frequência)
-            Section(header: Text("Lembrete")) {
+
+            Section("Lembrete") {
                 DatePicker("Alarme", selection: $alarmDate, displayedComponents: [.date, .hourAndMinute])
-                
-                Picker("Frequencia", selection: $frequency) {
-                    ForEach(frequenciesList, id: \.self) { freq in
-                        Text(freq).tag(freq)
+
+                Picker("Frequência", selection: $frequency) {
+                    ForEach(ReminderRepeat.allCases) { option in
+                        Text(option.title).tag(option)
                     }
                 }
             }
         }
-        .navigationTitle(taskToEdit != nil ? "Editar Tarefa" : "Nova Tarefa")
+        .navigationTitle(taskToEdit == nil ? "Nova Tarefa" : "Editar Tarefa")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             CustomSheetHeader(
                 onDismiss: { dismiss() },
-                onSave: {
-                    let newTask = CustomTaskModel(
-                        id: taskToEdit?.id ?? UUID(),
-                        vehicleName: selectedVehicle,
-                        title: taskTitle.isEmpty ? "Tarefa Sem Título" : taskTitle,
-                        note: taskNote,
-                        alarmDate: alarmDate,
-                        frequency: frequency
-                    )
-                    onSave(newTask)
-                    dismiss()
-                },
-                isSaveDisabled: taskTitle.isEmpty
+                onSave: save,
+                isSaveDisabled: !canSave
             )
         }
+    }
+
+    private func save() {
+        guard let vehicleID = selectedVehicleID,
+              let selectedVehicle = vehicles.first(where: { $0.id == vehicleID }) else { return }
+        
+        onSave(
+            CarTaskModel(
+                id: taskToEdit?.id ?? UUID(),
+                title: trimmedTitle,
+                textDescription: note,
+                startDate: taskToEdit?.startDate ?? Date(),
+                endDate: alarmDate,
+                frequency: frequency.rawValue,
+                vehicleName: selectedVehicle.name, 
+                isAutomatic: taskToEdit?.isAutomatic ?? false,
+                isInsurance: taskToEdit?.isInsurance
+            )
+        )
+        dismiss()
     }
 }

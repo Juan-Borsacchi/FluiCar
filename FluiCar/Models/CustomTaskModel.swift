@@ -2,16 +2,18 @@
 //  CustomTaskModel.swift
 //  FluiCar
 //
-//  Created by Assistente on 01/10/26.
+//  Created by Isabella Avelina on 01/10/26.
 //
 
 import Foundation
 
-struct CustomTaskModel: Identifiable, Codable {
+struct CustomTaskModel: Identifiable, Codable, Hashable {
     var id = UUID()
-    var vehicleName: String
+    var vehicleID: UUID
     var title: String
     var note: String
     var alarmDate: Date
-    var frequency: String
+    var frequency: ReminderRepeat
+    var isInsurance: Bool? = nil
 }
+

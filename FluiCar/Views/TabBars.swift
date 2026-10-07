@@ -14,7 +14,7 @@ enum Tabs: Hashable {
 }
 
 struct TabBarsView: View {
-    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = true
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
     @State private var mostrarOnboarding: Bool = false
 
     @State private var selectedTab: Tabs = .carHome
@@ -47,9 +47,7 @@ struct TabBarsView: View {
 
             Tab("Buscar", systemImage: "magnifyingglass", value: .search, role: .prominent) {
                 NavigationStack(path: $bindableCoordinator.searchPath) {
-                    Text("Tela de Busca")
-                        .navigationTitle("Buscar")
-                        .searchable(text: $searchString)
+                    coordinator.build(.search)
                         .navigationDestination(for: AppRoute.self) { route in
                             coordinator.build(route)
                         }

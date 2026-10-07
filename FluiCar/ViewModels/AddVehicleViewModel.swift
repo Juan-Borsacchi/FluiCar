@@ -12,11 +12,10 @@ import Observation
 class AddVehicleViewModel {
     private let service: any VehicleServiceProtocol
     private let dataBase: any VehicleRepositoryProtocol
+    private let maintenance: MaintenanceService
     
-    // 🌟 NOVA VARIÁVEL AQUI PARA DESTRAVAR OS PICKERS:
     var isInitialLoading = false
     var isLoading = false
-    
     var carToEdit: CarModel? {
         didSet {
             // Se o carro for injetado depois do init, força o carregamento!
@@ -58,9 +57,10 @@ class AddVehicleViewModel {
     var carUIImage: UIImage?
     var didRemovePhoto = false
 
-    init(car: CarModel? = nil, service: (any VehicleServiceProtocol)? = nil, dataBase: any VehicleRepositoryProtocol? = nil) {
+    init(car: CarModel? = nil, service: (any VehicleServiceProtocol)? = nil, dataBase: (any VehicleRepositoryProtocol)? = nil, maintenance: MaintenanceService? = nil) {
         self.service = service ?? ParallelumService()
         self.dataBase = dataBase ?? DataService.shared
+        self.maintenance = maintenance ?? MaintenanceService.shared
         self.carToEdit = car
         
         if let car = car {
@@ -204,6 +204,7 @@ class AddVehicleViewModel {
                 }
                 
                 try await dataBase.update(updatedCar)
+                await maintenance.syncInsuranceTask(for: updatedCar)
                 isLoading = false
                 print("Data updated")
                 return updatedCar
@@ -239,6 +240,7 @@ class AddVehicleViewModel {
                 )
                 
                 try await dataBase.save(vehicleToSave)
+                await maintenance.syncInsuranceTask(for: vehicleToSave)
                 isLoading = false
                 print("Data saved")
                 return vehicleToSave
@@ -283,7 +285,6 @@ class AddVehicleViewModel {
         return yearName
     }
     
-    // 🌟 A TUA NOVA FUNÇÃO DE EDIÇÃO ESTÁ AQUI
     func loadEditData() async {
         guard let car = carToEdit else {
             isInitialLoading = false
@@ -291,7 +292,7 @@ class AddVehicleViewModel {
         }
         
         isLoading = true
-        isInitialLoading = true // Bloqueia o .onChange
+        isInitialLoading = true
         
         do {
             let loadedBrands = try await service.fetchBrands(vehicleType: "cars")
@@ -323,8 +324,9 @@ class AddVehicleViewModel {
         }
         
         isLoading = false
-        // 🌟 IMPORTANTE: Libertamos o Picker!
-        isInitialLoading = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    self.isInitialLoading = false
+                }
     }
     
     func onAppear() async {
@@ -333,4 +335,10 @@ class AddVehicleViewModel {
             fetchBrands()
         }
     }
+    func textLimit(text: String, limit: Int = 20) -> String {
+            if text.count > limit {
+                return String(text.prefix(limit))
+            }
+            return text
+        }
 }

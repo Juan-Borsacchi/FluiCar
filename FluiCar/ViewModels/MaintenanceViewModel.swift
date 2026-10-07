@@ -4,178 +4,96 @@
 //
 //  Created by Isabella Avelina on 29/09/26.
 //
-
 import Foundation
-import SwiftUI
 import Observation
 
 @MainActor
 @Observable
-class MaintenanceViewModel {
-    var tasks: [TaskItemModel] = []
-    var customTasks: [CustomTaskModel] = []
-    var isLoading = false
-    var hasLoaded = false
-    var hasCars = false
-
-    struct TaskItemModel: Identifiable {
-        let id = UUID()
-        let title: String
-        let vehicle: String
-        let dueDate: String
-        let rawDate: Date
-        let taskType: TaskType
+final class MaintenanceViewModel {
+    enum ScreenState {
+        case loading
+        case failed
+        case noCars
+        case content
     }
 
-    // MARK: - Tarefas personalizadas
+    private let service: MaintenanceService
 
-    func addCustomTask(_ task: CustomTaskModel) {
-        if let index = customTasks.firstIndex(where: { $0.id == task.id }) {
-            customTasks[index] = task
-        } else {
-            customTasks.append(task)
+    var selectedFilter: TaskFilter = .all
+    var isShowingAddSheet = false
+    var isShowingAlert = false
+    private(set) var alertMessage = ""
+
+    init(service: MaintenanceService? = nil) {
+        self.service = service ?? MaintenanceService.shared
+    }
+
+    // MARK: - Estado da tela
+
+    var screenState: ScreenState {
+        if !service.hasLoaded { return .loading }
+        if service.loadFailed { return .failed }
+        if !service.hasCars { return .noCars }
+        return .content
+    }
+
+    var vehicles: [CarModel] { service.cars }
+    var canAddTask: Bool { service.hasCars }
+
+    // MARK: - Linhas da lista
+
+    var automaticRows: [MaintenanceRow] {
+        filteredAutomaticTasks.compactMap { service.automaticRow(for: $0) }
+    }
+
+    var customRows: [MaintenanceRow] {
+            let allCustomTasks = service.cars.flatMap { $0.tasks }.filter { $0.isAutomatic == false }
+            
+            return allCustomTasks
+                .sorted { ($0.endDate ?? Date()) < ($1.endDate ?? Date()) }
+                .map { MaintenanceRow(task: $0) }
         }
-    }
 
-    func deleteCustomTask(at offsets: IndexSet) {
-        customTasks.remove(atOffsets: offsets)
-    }
-
-    // MARK: - Filtros
-
-    func filteredTasks(for filter: String) -> [TaskItemModel] {
-        switch filter {
-        case "Prazo para vencer":
-            return tasks.sorted { $0.rawDate < $1.rawDate }
-
-        case "Manutenção recente":
-            return tasks.sorted { $0.rawDate > $1.rawDate }
-
-        default:
+    private var filteredAutomaticTasks: [AutomaticTask] {
+        let tasks = service.automaticTasks
+        switch selectedFilter {
+        case .all:
             return tasks
+        case .dueSoon:
+            return tasks.sorted { $0.dueDate < $1.dueDate }
+        case .recent:
+            return tasks.sorted { lhs, rhs in
+                let left = lhs.lastCheckDate ?? .distantPast
+                let right = rhs.lastCheckDate ?? .distantPast
+                return left == right ? lhs.dueDate < rhs.dueDate : left > right
+            }
         }
     }
 
-    // MARK: - Carregamento
+    // MARK: - Ações
 
-    func loadCarAndTasks() async {
-        if !hasLoaded {
-            isLoading = true
-        }
-
-        do {
-            let cars = try await DataService.shared.fetchAll()
-
-            hasCars = !cars.isEmpty
-            fetchMaintenanceTasks(for: cars)
-        } catch {
-            print("Erro ao carregar veículos: \(error)")
-            hasCars = false
-            fetchMaintenanceTasks(for: [])
-        }
-
-        hasLoaded = true
+    func load() async {
+        await service.load()
     }
 
-    func fetchMaintenanceTasks(for cars: [CarModel]) {
-        guard !cars.isEmpty else {
-            tasks = []
-            isLoading = false
-            return
+    func saveNewTask(_ task: CarTaskModel, to car: CarModel) {
+            service.saveCustomTask(task, to: car)
+            showAlert("Tarefa '\(task.title)' criada com sucesso!")
         }
 
-        let calendar = Calendar.current
-        let today = Date()
-
-        func formatDate(_ date: Date) -> String {
-            let formatter = DateFormatter()
-            formatter.dateStyle = .medium
-            formatter.timeStyle = .none
-            formatter.locale = Locale(identifier: "pt_BR")
-            return formatter.string(from: date)
+    func deleteCustomTask(_ row: MaintenanceRow) {
+            guard case .custom(let id) = row.ref else { return }
+            
+            let allTasks = service.cars.flatMap { $0.tasks }
+            guard let taskToDelete = allTasks.first(where: { $0.id == id }) else { return }
+            
+            service.deleteCustomTask(taskToDelete)
+            
+            showAlert("Tarefa '\(row.title)' excluída.")
         }
 
-        var generatedTasks: [TaskItemModel] = []
-
-        for car in cars {
-            let vehicleName = car.name.isEmpty ? car.model : car.name
-
-            let oilDate = calendar.date(
-                byAdding: .month,
-                value: 6,
-                to: today
-            ) ?? today
-
-            let waterDate = calendar.date(
-                byAdding: .day,
-                value: 15,
-                to: today
-            ) ?? today
-
-            let brakeDate = calendar.date(
-                byAdding: .year,
-                value: 1,
-                to: today
-            ) ?? today
-
-            let batteryDate = calendar.date(
-                byAdding: .month,
-                value: 8,
-                to: today
-            ) ?? today
-
-            let tireDate = calendar.date(
-                byAdding: .day,
-                value: 15,
-                to: today
-            ) ?? today
-
-            let carTasks: [TaskItemModel] = [
-                TaskItemModel(
-                    title: "Troca de óleo",
-                    vehicle: vehicleName,
-                    dueDate: "Próxima: \(formatDate(oilDate))",
-                    rawDate: oilDate,
-                    taskType: .oilChange
-                ),
-
-                TaskItemModel(
-                    title: "Verificar a água do radiador",
-                    vehicle: vehicleName,
-                    dueDate: "Próxima: \(formatDate(waterDate))",
-                    rawDate: waterDate,
-                    taskType: .waterCheck
-                ),
-
-                TaskItemModel(
-                    title: "Verificar pastilhas do freio",
-                    vehicle: vehicleName,
-                    dueDate: "Próxima: \(formatDate(brakeDate))",
-                    rawDate: brakeDate,
-                    taskType: .brakeCheck
-                ),
-
-                TaskItemModel(
-                    title: "Testar estado da bateria",
-                    vehicle: vehicleName,
-                    dueDate: "Próxima: \(formatDate(batteryDate))",
-                    rawDate: batteryDate,
-                    taskType: .batteryCheck
-                ),
-
-                TaskItemModel(
-                    title: "Calibrar pneus",
-                    vehicle: vehicleName,
-                    dueDate: "Próxima: \(formatDate(tireDate))",
-                    rawDate: tireDate,
-                    taskType: .tireCalibration
-                )
-            ]
-
-            generatedTasks.append(contentsOf: carTasks)
-        }
-
-        tasks = generatedTasks
-        isLoading = false
+    private func showAlert(_ message: String) {
+        alertMessage = message
+        isShowingAlert = true
     }
 }

@@ -12,12 +12,17 @@ import Observation
 @Observable
 class AutomobileHomeViewModel {
     private let dataBase: any VehicleRepositoryProtocol
+    private let maintenance: MaintenanceService
     
     var cars: [CarModel] = []
     var hasLoaded = false // evita mostrar o estado vazio antes da primeira busca terminar
     
-    init(dataBase: (any VehicleRepositoryProtocol)? = nil) {
+    init(
+        dataBase: (any VehicleRepositoryProtocol)? = nil,
+        maintenance: MaintenanceService? = nil
+    ) {
         self.dataBase = dataBase ?? DataService.shared
+        self.maintenance = maintenance ?? MaintenanceService.shared
     }
     
     // Busca os veículos cadastrados no banco
@@ -28,21 +33,15 @@ class AutomobileHomeViewModel {
             print("Erro ao carregar veículos: \(error)")
             cars = []
         }
+        // Garante que as tarefas de cada carro existam antes de desenhar os cartões.
+        await maintenance.load()
         hasLoaded = true
     }
     
-    // Texto da próxima tarefa do carro (a mais próxima a partir de hoje)
+    // Texto da próxima tarefa do carro (a mais próxima, incluindo as atrasadas)
     func nextTaskText(for car: CarModel) -> String {
-        let now = Date()
-        let upcoming = car.tasks
-            .compactMap { task -> (CarTaskModel, Date)? in
-                guard let date = task.endDate ?? task.startDate, date >= now else { return nil }
-                return (task, date)
-            }
-            .min { $0.1 < $1.1 }
-        
-        if let next = upcoming {
-            return "Próxima tarefa: \(next.0.title)"
+        if let next = maintenance.upcomingRows(for: car.id, limit: 1).first {
+            return "Próxima tarefa: \(next.title)"
         }
         return "Nenhuma tarefa agendada"
     }
