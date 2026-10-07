@@ -42,24 +42,33 @@ final class MaintenanceViewModel {
 
     // MARK: - Linhas da lista
 
+    /// Carro escolhido no filtro (nil quando o filtro não é de veículo).
+    private var selectedCarID: UUID? {
+        if case .vehicle(let id) = selectedFilter { return id }
+        return nil
+    }
+
     var automaticRows: [MaintenanceRow] {
-        filteredAutomaticTasks.compactMap { service.automaticRow(for: $0) }
+        sortedAutomaticTasks
+            .filter { selectedCarID == nil || $0.carID == selectedCarID }
+            .compactMap { service.automaticRow(for: $0) }
     }
 
     var customRows: [MaintenanceRow] {
-            let allCustomTasks = service.cars.flatMap { $0.tasks }.filter { $0.isAutomatic == false }
-            
-            return allCustomTasks
-                .sorted { ($0.endDate ?? Date()) < ($1.endDate ?? Date()) }
-                .map { MaintenanceRow(task: $0) }
-        }
+        service.cars
+            .filter { selectedCarID == nil || $0.id == selectedCarID }
+            .flatMap { $0.tasks }
+            .filter { !$0.isAutomatic }
+            .sorted { ($0.endDate ?? Date()) < ($1.endDate ?? Date()) }
+            .map { MaintenanceRow(task: $0) }
+    }
 
-    private var filteredAutomaticTasks: [AutomaticTask] {
+    private var sortedAutomaticTasks: [AutomaticTask] {
         let tasks = service.automaticTasks
         switch selectedFilter {
         case .all:
             return tasks
-        case .dueSoon:
+        case .dueSoon, .vehicle:
             return tasks.sorted { $0.dueDate < $1.dueDate }
         case .recent:
             return tasks.sorted { lhs, rhs in
@@ -74,6 +83,11 @@ final class MaintenanceViewModel {
 
     func load() async {
         await service.load()
+
+        // Se o carro filtrado foi apagado, volta para "Todas".
+        if let id = selectedCarID, !service.cars.contains(where: { $0.id == id }) {
+            selectedFilter = .all
+        }
     }
 
     func saveNewTask(_ task: CarTaskModel, to car: CarModel) {

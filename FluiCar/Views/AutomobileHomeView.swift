@@ -97,11 +97,16 @@ struct AutomobileHomeView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
+                    //isabella chamando um foreach pra executar a funcao 
                     ForEach(TaskType.allCases) { taskType in
                         NavigationLink(
                             value: AppRoute.tutorial(taskType)
                         ) {
-                            TutorialCardView(taskType: taskType)
+                            CardTutorials(
+                                type: taskType,
+                                width: 200,
+                                imageHeight: 150
+                            )
                         }
                         .buttonStyle(.plain)
                     }
@@ -234,46 +239,6 @@ struct AutomobileCardView: View {
         .frame(width: 335)
         .metallicBackground()
         .cornerRadius(24)
-    }
-}
-
-struct TutorialCardView: View {
-    let taskType: TaskType
-
-    private var tutorial: TutorialModel {
-        taskType.tutorialData
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            TutorialImageView(image: tutorial.introImage)
-                .frame(width: 200, height: 150)
-                .clipped()
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text(taskType.displayTitle)
-                    .font(.system(size: 15))
-                    .foregroundColor(.primary)
-                    .lineLimit(1)
-
-                Text("\(taskType.duration) • \(taskType.level)")
-                    .font(.system(size: 15))
-                    .foregroundColor(.secondary)
-            }
-            .padding(16)
-        }
-        .frame(width: 200)
-        .glassEffect(
-            .regular .interactive(),
-            in: .rect(cornerRadius: 16)
-        )
-        .cornerRadius(24)
-        .shadow(
-            color: Color.black.opacity(0.06),
-            radius: 10,
-            x: 0,
-            y: 4
-        )
     }
 }
 

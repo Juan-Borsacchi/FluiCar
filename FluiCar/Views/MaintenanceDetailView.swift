@@ -170,30 +170,7 @@ struct MaintenanceDetailView: View {
         Button {
             coordinator.push(.tutorial(type))
         } label: {
-            VStack(alignment: .leading, spacing: 0) {
-                TutorialImageView(image: type.tutorialData.introImage)
-                    .frame(width: 190, height: 100)
-                    .clipped()
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(type.tutorialShortcutTitle)
-                        .font(.subheadline)
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-
-                    Text("\(type.duration) • \(type.level)")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(14)
-            }
-            .frame(width: 190)
-            .glassEffect(.regular, in: .rect(cornerRadius: 16))
-            .clipShape(.rect(cornerRadius: 16))
-            .overlay {
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-            }
+            CardTutorials(type: type)
         }
         .buttonStyle(.plain)
     }
