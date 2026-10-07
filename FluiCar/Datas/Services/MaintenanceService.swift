@@ -169,7 +169,7 @@ final class MaintenanceService {
         }
         
         switch text {
-        case "diário", "diariamente", "daily":
+        case "diária", "diário", "diariamente", "daily":
             return .daily
         case "semanal", "semanalmente", "weekly":
             return .weekly
@@ -249,10 +249,29 @@ final class MaintenanceService {
         Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: date) ?? date
     }
 
+    /// Conclui uma tarefa manual. Se ela se repete, avança para a próxima data (devolve true);
+    /// se não, remove da lista (devolve false).
+    @discardableResult
+    func completeCustomTask(_ task: CarTaskModel, in car: CarModel) -> Bool {
+        let rule = parseFrequency(task.frequency)
+        guard let due = task.endDate ?? task.startDate,
+              let next = rule.nextOccurrence(after: due) else {
+            deleteCustomTask(task)
+            return false
+        }
+
+        var updated = task
+        updated.endDate = next
+        saveCustomTask(updated, to: car)
+        return true
+    }
+
     func deleteCustomTask(_ task: CarTaskModel) {
+        scheduler.cancel(ids: [customReminderID(task.id)])
         Task {
             do {
                 try await repository.deleteTask(task)
+                await load()
             }catch{
                 logger.error("ERRO GRAVE: Falha ao deletar do banco: \(error.localizedDescription)")
             }

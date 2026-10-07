@@ -8,7 +8,6 @@
 
 import Foundation
 
-// MARK: - Filtro
 
 enum TaskFilter: Hashable, Identifiable {
     case all
@@ -18,7 +17,6 @@ enum TaskFilter: Hashable, Identifiable {
 
     var id: Self { self }
 
-    /// Filtros fixos do menu. Os de veículo são montados a partir dos carros cadastrados.
     static let general: [TaskFilter] = [.all, .dueSoon, .recent]
 
     var title: String {
@@ -31,14 +29,12 @@ enum TaskFilter: Hashable, Identifiable {
     }
 }
 
-// MARK: - Referência de tarefa (usada na rota de navegação)
 
 enum MaintenanceTaskRef: Hashable {
     case automatic(UUID)
     case custom(UUID)
 }
 
-// MARK: - Repetição do lembrete
 
 enum ReminderRepeat: String, CaseIterable, Identifiable, Codable {
     case never = "Nunca"
@@ -50,17 +46,34 @@ enum ReminderRepeat: String, CaseIterable, Identifiable, Codable {
 
     var id: String { rawValue }
     var title: String { rawValue }
-    // O iOS não repete notificações a cada 6 meses: o semestral é agendado como disparo único
-    // e reagendado para a próxima ocorrência sempre que o app sincroniza as tarefas.
+  
     var repeats: Bool { self != .never && self != .semiannual }
 
-    /// Próxima data em que o lembrete deve disparar (só muda para o semestral, que avança de 6 em 6 meses).
     func nextFireDate(from date: Date, after now: Date = Date(), calendar: Calendar = .current) -> Date {
         guard self == .semiannual else { return date }
         var next = date
         while next <= now, let advanced = calendar.date(byAdding: .month, value: 6, to: next) {
             next = advanced
         }
+        return next
+    }
+
+    func nextOccurrence(after date: Date, now: Date = Date(), calendar: Calendar = .current) -> Date? {
+        let step: (component: Calendar.Component, value: Int)
+        switch self {
+        case .never: return nil
+        case .daily: step = (.day, 1)
+        case .weekly: step = (.weekOfYear, 1)
+        case .monthly: step = (.month, 1)
+        case .semiannual: step = (.month, 6)
+        case .yearly: step = (.year, 1)
+        }
+
+        var next = date
+        repeat {
+            guard let advanced = calendar.date(byAdding: step.component, value: step.value, to: next) else { return nil }
+            next = advanced
+        } while next <= now
         return next
     }
 
@@ -78,7 +91,6 @@ enum ReminderRepeat: String, CaseIterable, Identifiable, Codable {
 }
 
 extension FrequencyType {
-    /// Frequência do seguro (tela de cadastro do veículo) convertida para a do lembrete.
     var reminderRepeat: ReminderRepeat {
         switch self {
         case .monthly: return .monthly
@@ -89,7 +101,6 @@ extension FrequencyType {
     }
 }
 
-// MARK: - Tarefa automática (persistida)
 
 struct AutomaticTask: Identifiable, Codable, Hashable {
     let id: UUID
@@ -100,7 +111,6 @@ struct AutomaticTask: Identifiable, Codable, Hashable {
     var selectedOption: String?
 }
 
-// MARK: - Linha da lista (modelo de apresentação)
 
 struct MaintenanceRow: Identifiable, Hashable {
     let ref: MaintenanceTaskRef
