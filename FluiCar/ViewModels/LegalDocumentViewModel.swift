@@ -31,15 +31,15 @@ enum LegalDocument {
             Bem-vindo ao FluiCar! um aplicativo totalmente gratuito. Ao utilizar nosso aplicativo, você concorda com os termos descritos abaixo. Se você não concordar com qualquer uma das condições, recomendamos que não utilize o aplicativo.
 
             ## 1. Escopo do Serviço
-            O FluiCar é uma ferramenta de apoio para organização e lembrete de manutenções rotineiras de veículos (como troca de óleo, água, etc.). O aplicativo também fornece informações técnicas e valores da Tabela FIPE por meio de consultas automatizadas, além de guias e tutoriais informativos sobre cuidados automotivos.
+            O FluiCar é uma ferramenta de apoio para organização e lembrete de manutenções rotineiras de automóvel (como troca de óleo, água, etc.). O aplicativo também fornece informações técnicas e valores da Tabela FIPE por meio de consultas automatizadas, além de guias e tutoriais informativos sobre cuidados automotivos.
 
             ## 2. Isenção de Responsabilidade
             * **Conteúdo Meramente Informativo:** Todos os tutoriais, dicas e guias passo a passo disponibilizados no FluiCar são estritamente informativos. Eles ilustram procedimentos simples e gerais.
-            * **Riscos Físicos e Mecânicos:** Manutenções automotivas envolvem riscos de acidentes graves, queimaduras, ferramentas pesadas e danos permanentes ao motor ou componentes do veículo. O FluiCar não se responsabiliza por quaisquer acidentes pessoais, ferimentos, prejuízos financeiros ou danos materiais causados pela execução das dicas contidas no app.
+            * **Riscos Físicos e Mecânicos:** Manutenções automotivas envolvem riscos de acidentes graves, queimaduras, ferramentas pesadas e danos permanentes ao motor ou componentes do automóvel. O FluiCar não se responsabiliza por quaisquer acidentes pessoais, ferimentos, prejuízos financeiros ou danos materiais causados pela execução das dicas contidas no app.
             * **Recomendação de Profissional:** O FluiCar recomenda expressamente que qualquer atividade que ofereça dúvidas ou complexidade seja realizada exclusivamente por um profissional qualificado (mecânico especializado). Use as dicas por sua conta e risco.
 
             ## 3. Exatidão dos Dados (Dados de Terceiros)
-            O FluiCar exibe informações sobre os veículos e valores baseados na Tabela FIPE por meio de integrações com APIs externas. Nós não garantimos a precisão absoluta, infalibilidade ou atualização em tempo real desses dados. As informações são exibidas "como fornecidas" pela API parceira.
+            O FluiCar exibe informações sobre os automóvel e valores baseados na Tabela FIPE por meio de integrações com APIs externas. Nós não garantimos a precisão absoluta, infalibilidade ou atualização em tempo real desses dados. As informações são exibidas "como fornecidas" pela API parceira.
 
             ## 5. Alterações nos Termos e no Aplicativo
             O FluiCar é uma ferramenta em constante evolução. Por isso, nós nos reservamos o direito de, a qualquer momento e sem aviso prévio:
@@ -65,15 +65,15 @@ enum LegalDocument {
             # POLÍTICA DE PRIVACIDADE – FLUICAR
             **Última atualização: 01/10/2026**
 
-            A sua privacidade é uma prioridade absoluta para nós. O FluiCar foi desenhado para que você tenha controle total sobre os dados do seu veículo, operando com o máximo de transparência.
+            A sua privacidade é uma prioridade absoluta para nós. O FluiCar foi desenhado para que você tenha controle total sobre os dados do seu automóvel, operando com o máximo de transparência.
 
             ## 1. Não Coleta de Dados Pessoais
-            Nós não coletamos, não armazenamos e não solicitamos nenhum dado pessoal do usuário. O aplicativo não exige a criação de contas com e-mail/senha e nunca pedirá informações confidenciais ou de identificação civil como o seu nome, CPF, número da CNH ou a placa do seu veículo.
+            Nós não coletamos, não armazenamos e não solicitamos nenhum dado pessoal do usuário. O aplicativo não exige a criação de contas com e-mail/senha e nunca pedirá informações confidenciais ou de identificação civil como o seu nome, CPF, número da CNH ou a placa do seu automóvel.
 
             ## 2. Base Legal e Conformidade (LGPD)
             Embora o FluiCar opere de forma local e anônima, sem realizar o tratamento direto de dados pessoais identificáveis, o aplicativo foi desenvolvido respeitando os princípios fundamentais de transparência, segurança e minimização de dados previstos pela Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018) no Brasil e demais regulamentações internacionais de privacidade.
 
-            ## 3. Uso de APIs de Terceiros e Dados do Veículo
+            ## 3. Uso de APIs de Terceiros e Dados do automóvel
             Para fornecer informações detalhadas e o valor de mercado do automóvel, o usuário insere voluntariamente dados gerais do carro (como ano, marca e modelo).
             Esses dados genéricos são enviados para uma API externa parceira apenas para realizar a consulta técnica.
             Nenhum identificador pessoal ou do seu celular é enviado junto com essa requisição. A API recebe apenas o modelo, o ano e a marca do carro de forma anônima.

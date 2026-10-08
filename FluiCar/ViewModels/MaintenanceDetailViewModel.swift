@@ -80,7 +80,7 @@ final class MaintenanceDetailViewModel {
     var detailRows: [MaintenanceDetailRow] {
             if let task = automaticTask {
                 return [
-                    MaintenanceDetailRow(label: "Veículo", value: vehicleName),
+                    MaintenanceDetailRow(label: "Automóvel", value: vehicleName),
                     MaintenanceDetailRow(label: task.type.optionsTitle, value: task.selectedOption ?? task.type.options.first ?? "—"),
                     MaintenanceDetailRow(
                         label: "Última checagem",
@@ -94,7 +94,7 @@ final class MaintenanceDetailViewModel {
             }
             if let task = customTask {
                 return [
-                    MaintenanceDetailRow(label: "Veículo", value: vehicleName),
+                    MaintenanceDetailRow(label: "Automóvel", value: vehicleName),
                     MaintenanceDetailRow(label: "Alarme", value: (task.endDate ?? Date()).formatted(date: .abbreviated, time: .shortened)),
                     MaintenanceDetailRow(label: "Frequência", value: task.frequency?.capitalized ?? "Nenhuma")
                 ]
@@ -109,7 +109,7 @@ final class MaintenanceDetailViewModel {
 
     var footnote: String? {
         guard automaticTask != nil else { return nil }
-        return "• A frequência é uma estimativa. É recomendado verificar conforme a utilização do veículo."
+        return "• A frequência é uma estimativa. É recomendado verificar conforme a utilização do automóvel."
     }
 
     var tutorials: [TaskType] {

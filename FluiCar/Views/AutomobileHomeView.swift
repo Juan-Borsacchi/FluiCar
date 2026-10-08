@@ -126,7 +126,7 @@ struct EmptyVehiclesCardView: View {
                 .font(.system(size: 44))
                 .foregroundColor(.gray)
 
-            Text("Ainda não há veículo cadastrado")
+            Text("Ainda não há automóvel cadastrado")
                 .font(.headline)
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
@@ -138,7 +138,7 @@ struct EmptyVehiclesCardView: View {
             .foregroundColor(.white.opacity(0.7))
             .multilineTextAlignment(.center)
 
-            Button("Adicionar veículo") {
+            Button("Adicionar automóvel") {
                 onAdd()
             }
             .buttonStyle(.borderedProminent)
