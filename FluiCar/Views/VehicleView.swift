@@ -15,18 +15,19 @@ struct VehicleView: View {
     @Environment(CoordinatorCore.self) private var coordinator
     
     var body: some View {
-        ZStack {
-            Color("Background")
-                .ignoresSafeArea()
+
+//            Color("Background")
+//                .ignoresSafeArea()
             
             ScrollView {
-                VStack(spacing: 0) {
+                VStack(spacing: 24) {
                     vehicleInformationSection
                     upcomingTasksSection
                 }
-                .padding(.horizontal)
+                .padding(.top, 24)
+                .padding(.bottom, 40)
             }
-        }
+        
         .toolbar(.hidden, for: .tabBar)
         .task {
             await viewModel.fetchInformations()
@@ -91,24 +92,29 @@ struct VehicleView: View {
     private var vehicleInformationSection: some View {
         VStack(spacing: 0) {
             vehiclePhoto
+                .padding()
+                
             
-            VStack(alignment: .leading) {
-                Text("\(viewModel.car.brand) \(viewModel.car.model)")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-                    .padding(.top, 12)
-                
-                Text("Ano do Modelo: \(viewModel.car.year == 32000 ? "Zero KM" : String(viewModel.car.year))")
-                    .font(.caption)
-                    .foregroundStyle(.white)
-                
-                Text("Especificações do Automóvel")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-                    .padding(.top, 8)
-                
+                VStack(alignment: .leading) {
+                    Text("\(viewModel.car.brand) \(viewModel.car.model)")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
+                        .padding(.top, 12)
+                        .padding(.leading, 12)
+                    
+                    Text("Ano do Modelo: \(viewModel.car.year == 32000 ? "Zero KM" : String(viewModel.car.year))")
+                        .font(.caption)
+                        .foregroundStyle(.white)
+                        .padding(.leading, 12)
+
+                    Text("Especificações do Automóvel")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                        .padding(.top, 8)
+                        .padding(.leading, 12)
+
                 fipeInformationCard
                 
                 HStack(spacing: 12) {
@@ -188,15 +194,15 @@ struct VehicleView: View {
                 
                     
                 }
-                .padding(.vertical, 4)
+                .padding(.top, 6)
             }
+            .padding(.horizontal, 8)
         }
-        .padding(.vertical)
-        .padding(.horizontal, 8)
+        .padding(.bottom, 20)
         .metallicBackground()
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .padding(.horizontal, 8)
+        .clipShape(RoundedRectangle(cornerRadius: 17.5, style: .continuous))
       
-        
         
         
     }
@@ -220,7 +226,7 @@ struct VehicleView: View {
                 )
                 .clipShape(
                     RoundedRectangle(
-                        cornerRadius: 32,
+                        cornerRadius: 12,
                         style: .continuous
                     )
                 )
@@ -241,7 +247,7 @@ struct VehicleView: View {
                 .background(Color.gray.opacity(0.3))
                 .clipShape(
                     RoundedRectangle(
-                        cornerRadius: 32,
+                        cornerRadius: 12,
                         style: .continuous
                     )
                 )
@@ -287,8 +293,8 @@ struct VehicleView: View {
                 .font(.headline)
                 .fontWeight(.regular)
                 .foregroundStyle(.secondary)
-                .padding(.leading)
-                .padding(.top)
+                
+//                .padding(.top)
             
             // Isabella mudou pq viewModel.car.tasks nunca é preenchido (a lista ficava sempre vazia)
             // e pra ler viewModel.upcomingTasks, que vem do MaintenanceService (tarefas reais do carro).
@@ -305,6 +311,7 @@ struct VehicleView: View {
             maxHeight: .infinity,
             alignment: .leading
         )
+        .padding(.horizontal, 16)
     }
     
     private var emptyTasksView: some View {
@@ -335,7 +342,6 @@ struct VehicleView: View {
             )
         }
         .buttonStyle(.plain)
-        .padding(.horizontal)
     }
 }
 

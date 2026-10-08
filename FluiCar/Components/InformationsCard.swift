@@ -33,7 +33,7 @@ struct InformationsCard: View {
             
         }
         .padding()
-        .frame(minWidth: 180, idealWidth: 180, maxWidth: .infinity, minHeight: 102, idealHeight: 102,  maxHeight: .infinity, alignment: .leading)
+        .frame(minWidth: 150, idealWidth: 180, maxWidth: .infinity, minHeight: 102, idealHeight: 102,  maxHeight: .infinity, alignment: .leading)
         .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 17.5))
 //                .overlay(
