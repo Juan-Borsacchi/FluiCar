@@ -85,7 +85,7 @@ extension TaskType {
         switch self {
         case .oilChange: return "Troca de Óleo"
         case .oilCheck: return "Verificar o Nível do Óleo"
-        case .waterCheck: return "Verificar a Água do Radiador"
+        case .waterCheck: return "Revisão e Troca da Água do Radiador"
         case .brakeCheck: return "Verificar os Freios"
         case .tireCalibration: return "Calibrar o Pneu"
         case .batteryCheck: return "Verificar a Bateria"
