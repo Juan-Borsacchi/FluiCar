@@ -46,7 +46,7 @@ struct TutorialStepView: View {
                 VStack (spacing: 10) {
                     TutorialImageView(image: step.image)
                         .frame(
-                            width: geometry.size.width - 32,
+                            width: geometry.size.width - 48,
                             height: geometry.size.height * 0.28
                         )
                         .clipped()
@@ -60,8 +60,9 @@ struct TutorialStepView: View {
                     }
                     .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(8)
+                .padding(.horizontal)
                 .padding(.bottom)
+                .padding(.top)
                 .background(Color(.systemGray6))
                 .clipShape(RoundedRectangle(cornerRadius: 28))
                 .glassEffect(.regular .interactive(),  in: .rect(cornerRadius: 28))
