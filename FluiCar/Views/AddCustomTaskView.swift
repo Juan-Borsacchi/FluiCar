@@ -55,7 +55,7 @@ struct AddCustomTaskView: View {
     var body: some View {
         Form {
             Section {
-                Picker("Selecione o Veículo", selection: $selectedVehicleID) {
+                Picker("Selecione o automóvel", selection: $selectedVehicleID) {
                     ForEach(vehicles) { car in
                         Text(car.name).tag(Optional(car.id))
                     }

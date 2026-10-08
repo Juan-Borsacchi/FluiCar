@@ -93,7 +93,7 @@ private extension TaskType {
             materials: [
                 TutorialMaterial(
                     name: "Óleo de motor",
-                    description: "Consulte o manual do veículo para confirmar o tipo do óleo: sintético, semissintético ou mineral."
+                    description: "Consulte o manual do automóvel para confirmar o tipo do óleo: sintético, semissintético ou mineral."
                 ),
                 TutorialMaterial(
                     name: "Filtro de óleo",
@@ -201,7 +201,7 @@ private extension TaskType {
             materials: [
                 TutorialMaterial(
                     name: "Fluido de arrefecimento",
-                    description: "Consulte o manual para saber qual fluido é recomendado para o seu veículo."
+                    description: "Consulte o manual para saber qual fluido é recomendado para o seu automóvel."
                 ),
                 TutorialMaterial(
                     name: "Água desmineralizada",
@@ -274,7 +274,7 @@ private extension TaskType {
                         
                     Procure pelo disco de freio (comum nas rodas dianteiras) e observe se há riscos profundos, rachaduras ou sinais de desgaste excessivo.
                      
-                    Nota: Se o veículo possui calotas fechadas ou freios a tambor (comuns nas rodas traseiras), não é possível fazer essa inspeção visual sem remover a roda.
+                    Nota: Se o automóvel possui calotas fechadas ou freios a tambor (comuns nas rodas traseiras), não é possível fazer essa inspeção visual sem remover a roda.
                     """,
                     image: .asset(
                         name: "step1_cbrake",
@@ -316,7 +316,7 @@ private extension TaskType {
                     description: "Pode ser um compressor com medidor de pressão ou o equipamento de um posto."
                 ),
                 TutorialMaterial(
-                    name: "Manual do veículo",
+                    name: "Manual do automóvel",
                     description: "Consulte a pressão recomendada para os pneus dianteiros, traseiros e estepe."
                 ),
                 TutorialMaterial(
@@ -330,7 +330,7 @@ private extension TaskType {
                     description: """
                     Vá a um posto próximo (rode menos de 3 km) ou deixe o carro parado para que os pneus estejam frios.
                     
-                    Consulte a etiqueta na porta do motorista, na tampa do tanque de combustível, no pneu ou no manual do veículo.
+                    Consulte a etiqueta na porta do motorista, na tampa do tanque de combustível, no pneu ou no manual do automóvel.
                     
                     Confira a pressão dos quatro pneus e também do estepe, se houver.
                     """,
@@ -365,7 +365,7 @@ private extension TaskType {
                 name: "check_batery",
                 fallback: "battery.100percent"
             ),
-            introDescription: "Aprenda a identificar sinais de desgaste ou problemas na bateria do seu veículo.",
+            introDescription: "Aprenda a identificar sinais de desgaste ou problemas na bateria do seu automóvel.",
             introNote: "Aviso: Faça a inspeção com o carro desligado, em local ventilado e sem chamas ou faíscas.",
             materials: [
                 TutorialMaterial(
@@ -396,7 +396,7 @@ private extension TaskType {
                 TutorialStep(
                     title: "Passo 2: Teste com multímetro",
                     description: """
-                        Com o veículo desligado há mais de 30 minutos, ajuste o multímetro em tensão contínua (DCV ou escala de 20V).
+                        Com o automóvel desligado há mais de 30 minutos, ajuste o multímetro em tensão contínua (DCV ou escala de 20V).
                         
                         Encoste a ponta vermelha no terminal positivo (+) e a preta no negativo (-). A leitura deve ficar entre 12.4V e 12.6V.
                         

@@ -143,7 +143,7 @@ struct TabBarsView: View {
             VStack(alignment: .leading, spacing: 24) {
                 onboardingItem(
                     icon: "car.fill",
-                    title: "Cuide dos seus veículos",
+                    title: "Cuide dos seus automóvel",
                     description: "Tenha as informações essenciais do seu automóvel sempre à mão."
                 )
 

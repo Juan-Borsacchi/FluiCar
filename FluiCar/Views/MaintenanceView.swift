@@ -17,6 +17,20 @@ struct MaintenanceView: View {
 
             content
         }
+        .alert(
+            viewModel.pendingAction?.title ?? "Confirmar",
+            isPresented: $viewModel.isShowingConfirmation,
+            presenting: viewModel.pendingAction
+        ) { action in
+            Button(action.confirmLabel, role: action.isDelete ? .destructive : nil) {
+                viewModel.confirmPendingAction()
+            }
+            Button("Cancelar", role: .cancel) {
+                viewModel.cancelPendingAction()
+            }
+        } message: { action in
+            Text(action.message)
+        }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { toolbarContent }
         .task { await viewModel.load() }
@@ -33,14 +47,13 @@ struct MaintenanceView: View {
                         }
                     }
                 }
-        .alert("Aviso", isPresented: $viewModel.isShowingAlert) {
+        .alert(viewModel.alertTitle, isPresented: $viewModel.isShowingAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(viewModel.alertMessage)
         }
     }
 
-    // MARK: - Conteúdo
 
     @ViewBuilder
     private var content: some View {
@@ -68,8 +81,22 @@ struct MaintenanceView: View {
             )
 
         case .content:
-            taskList
+            VStack(spacing: 0) {
+                statusPicker
+                taskList
+            }
         }
+    }
+
+    private var statusPicker: some View {
+        Picker("Status", selection: $viewModel.selectedStatus) {
+            ForEach(MaintenanceStatusFilter.allCases) { status in
+                Text(status.title).tag(status)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
     }
 
     private var taskList: some View {
@@ -80,19 +107,21 @@ struct MaintenanceView: View {
 
             ForEach(viewModel.customRows) { row in
                 taskRow(row)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            viewModel.deleteCustomTask(row)
-                        } label: {
-                            Label("Excluir", systemImage: "trash")
-                        }
-                    }
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+        .overlay {
+            if !viewModel.hasVisibleRows {
+                ContentUnavailableView(
+                    viewModel.selectedStatus.emptyTitle,
+                    systemImage: "wrench.and.screwdriver.fill"
+                )
+            }
+        }
     }
 
+  
     private func taskRow(_ row: MaintenanceRow) -> some View {
         Button {
             coordinator.push(.maintenanceDetail(row.ref))
@@ -107,9 +136,40 @@ struct MaintenanceView: View {
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
         .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            completeButton(for: row)
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            if row.isCustom {
+                deleteButton(for: row)
+            }
+        }
+        .contextMenu {
+            completeButton(for: row)
+
+            if row.isCustom {
+                deleteButton(for: row)
+            }
+        }
     }
 
-    // MARK: - Toolbar
+    private func completeButton(for row: MaintenanceRow) -> some View {
+        Button {
+            viewModel.requestComplete(row)
+        } label: {
+            Label("Concluir", systemImage: "checkmark.circle.fill")
+        }
+        .tint(.green)
+    }
+
+    private func deleteButton(for row: MaintenanceRow) -> some View {
+        Button(role: .destructive) {
+            viewModel.requestDelete(row)
+        } label: {
+            Label("Excluir", systemImage: "trash")
+        }
+    }
+
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
@@ -131,18 +191,18 @@ struct MaintenanceView: View {
 
             Menu {
                 Picker("Filtrar", selection: $viewModel.selectedFilter) {
-                    ForEach(TaskFilter.general) { filter in
-                        Text(filter.title).tag(filter)
-                    }
+                    Text("Todos").tag(TaskFilter.all)
                 }
 
                 if !viewModel.vehicles.isEmpty {
-                    Section("Veículos") {
-                        Picker("Veículo", selection: $viewModel.selectedFilter) {
+                    Menu {
+                        Picker("Automóvel", selection: $viewModel.selectedFilter) {
                             ForEach(viewModel.vehicles) { car in
                                 Text(car.name).tag(TaskFilter.vehicle(car.id))
                             }
                         }
+                    } label: {
+                        Label("Automóveis", systemImage: "car")
                     }
                 }
             } label: {
