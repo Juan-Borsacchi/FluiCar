@@ -109,12 +109,6 @@ final class MaintenanceViewModel {
             return tasks
         case .dueSoon, .vehicle:
             return tasks.sorted { $0.dueDate < $1.dueDate }
-        case .recent:
-            return tasks.sorted { lhs, rhs in
-                let left = lhs.lastCheckDate ?? .distantPast
-                let right = rhs.lastCheckDate ?? .distantPast
-                return left == right ? lhs.dueDate < rhs.dueDate : left > right
-            }
         }
     }
 

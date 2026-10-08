@@ -12,18 +12,16 @@ import Foundation
 enum TaskFilter: Hashable, Identifiable {
     case all
     case dueSoon
-    case recent
     case vehicle(UUID)
 
     var id: Self { self }
 
-    static let general: [TaskFilter] = [.all, .dueSoon, .recent]
+    static let general: [TaskFilter] = [.all, .dueSoon]
 
     var title: String {
         switch self {
         case .all: return "Todas"
         case .dueSoon: return "Prazo para vencer"
-        case .recent: return "Manutenção recente"
         case .vehicle: return "Veículo"
         }
     }
