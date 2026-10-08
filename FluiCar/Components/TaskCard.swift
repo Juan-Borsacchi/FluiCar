@@ -19,8 +19,9 @@ struct TaskCard: View {
 
             Text("Automóvel: \(vehicle)")
                 .font(.footnote)
+                .bold()
                 .foregroundStyle(.secondary)
-
+            
             HStack(spacing: 6) {
                 Circle()
                     .fill(Color("AccentColor"))

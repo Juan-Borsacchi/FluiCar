@@ -81,8 +81,22 @@ struct MaintenanceView: View {
             )
 
         case .content:
-            taskList
+            VStack(spacing: 0) {
+                statusPicker
+                taskList
+            }
         }
+    }
+
+    private var statusPicker: some View {
+        Picker("Status", selection: $viewModel.selectedStatus) {
+            ForEach(MaintenanceStatusFilter.allCases) { status in
+                Text(status.title).tag(status)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
     }
 
     private var taskList: some View {
@@ -97,6 +111,14 @@ struct MaintenanceView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+        .overlay {
+            if !viewModel.hasVisibleRows {
+                ContentUnavailableView(
+                    viewModel.selectedStatus.emptyTitle,
+                    systemImage: "wrench.and.screwdriver.fill"
+                )
+            }
+        }
     }
 
   
@@ -169,20 +191,18 @@ struct MaintenanceView: View {
 
             Menu {
                 Picker("Filtrar", selection: $viewModel.selectedFilter) {
-                    ForEach(TaskFilter.general) { filter in
-                        Text(filter.title).tag(filter)
-                    }
+                    Text("Todos").tag(TaskFilter.all)
                 }
 
                 if !viewModel.vehicles.isEmpty {
                     Menu {
-                        Picker("Veículo", selection: $viewModel.selectedFilter) {
+                        Picker("Automóvel", selection: $viewModel.selectedFilter) {
                             ForEach(viewModel.vehicles) { car in
                                 Text(car.name).tag(TaskFilter.vehicle(car.id))
                             }
                         }
                     } label: {
-                        Label("Veículos", systemImage: "car")
+                        Label("Automóveis", systemImage: "car")
                     }
                 }
             } label: {
