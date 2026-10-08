@@ -7,43 +7,29 @@
 import SwiftUI
 
 struct VehicleCardView: View {
+    let brand: String
     let modelName: String
     let vehicleName: String
-
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-           
-
-            HStack(spacing: 10) {
-                HStack {
-//                    Image(systemName: "car.fill")
-//                        .foregroundColor(.red)
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        
-
-                        Text(vehicleName)
-                            .font(.subheadline)
-                            .fontWeight(.bold)
-                            .lineLimit(1)
-                        Text("Modelo: \(modelName)")
-                            .font(.caption2)
-                            .foregroundColor(.gray)
-                            .lineLimit(1)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(10)
-                .cornerRadius(12)
-
+        VStack(alignment: .leading, spacing: 4) {
+            Text(vehicleName)
+                .font(.system(size: 16))
+                .foregroundColor(.primary)
+                .lineLimit(1)
             
-            }
-
-            
+            Text("Automóvel: \(brand) \(modelName)")
+                .font(.system(size: 14))
+                .foregroundColor(.secondary)
         }
-        .padding(16)
-        .frame(width: 335)
-        .cornerRadius(24)
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassEffect(.regular, in: .rect(cornerRadius: 16))
+        .cornerRadius(16)
+        .overlay {
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+        }
     }
 }
 
