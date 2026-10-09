@@ -56,16 +56,18 @@ struct AutomobileHomeView: View {
                     Button {
                         coordinator.push(.terms)
                     } label: {
+                        Image(systemName:"text.document.fill")
                         Text("Termos de Uso")
                     }
                     Button {
                         coordinator.push(.privacy)
                     } label: {
+                        Image(systemName:"checkmark.shield.fill")
                         Text("Politicas de Privacidade")
                     }
                     
                 } label: {
-                    Image(systemName: "ellipsis")
+                    Image(systemName: "info")
                 }
             }
         }
