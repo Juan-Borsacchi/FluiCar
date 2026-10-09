@@ -10,6 +10,7 @@ import UIKit
 
 struct AutomobileHomeView: View {
     @State private var viewModel = AutomobileHomeViewModel()
+    @State private var carToDelete: CarModel?
     @Environment(CoordinatorCore.self) private var coordinator
 
     var body: some View {
@@ -48,6 +49,21 @@ struct AutomobileHomeView: View {
                 }
             }
         }
+        .alert(
+            "Excluir automóvel?",
+            isPresented: Binding(
+                get: { carToDelete != nil },
+                set: { if !$0 { carToDelete = nil } }
+            ),
+            presenting: carToDelete
+        ) { car in
+            Button("Cancelar", role: .cancel) { }
+            Button("Excluir", role: .destructive) {
+                Task { await viewModel.deleteCar(car) }
+            }
+        } message: { car in
+            Text("Tem certeza que deseja excluir \(car.name)? As tarefas dele também serão removidas e essa ação não pode ser desfeita.")
+        }
     }
 
     private var vehiclesSection: some View {
@@ -75,6 +91,13 @@ struct AutomobileHomeView: View {
                                     )
                                 }
                                 .buttonStyle(.plain)
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        carToDelete = car
+                                    } label: {
+                                        Label("Excluir automóvel", systemImage: "trash")
+                                    }
+                                }
                             }
                         }
                         .padding(.horizontal)
@@ -97,7 +120,7 @@ struct AutomobileHomeView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    //isabella chamando um foreach pra executar a funcao 
+                    //isabella chamando um foreach pra executar a funcao
                     ForEach(TaskType.allCases) { taskType in
                         NavigationLink(
                             value: AppRoute.tutorial(taskType)
