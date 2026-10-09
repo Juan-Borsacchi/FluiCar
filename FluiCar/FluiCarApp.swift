@@ -11,11 +11,18 @@ import SwiftData
 @main
 struct FluiCarApp: App {
     @State private var coordinator = CoordinatorCore()
-    
+    @State private var isSplash = false
     var body: some Scene {
         WindowGroup {
-            TabBarsView()
-                .environment(coordinator)
+            ZStack{
+                if isSplash {
+                    TabBarsView()
+                        .environment(coordinator)
+                } else {
+                    SplashView(isActive: $isSplash)
+                }
+                
+            }
         }
     }
 }

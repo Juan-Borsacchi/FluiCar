@@ -26,7 +26,7 @@ enum TaskType: String, Identifiable, CaseIterable, Hashable, Codable {
         case .oilCheck:
             return "Verificação de Óleo"
         case .waterCheck:
-            return "Ver e Trocar Água"
+            return "Ver e Trocar Água do Radiador"
         case .brakeCheck:
             return "Checagem dos Freios"
         case .tireCalibration:
@@ -43,7 +43,7 @@ enum TaskType: String, Identifiable, CaseIterable, Hashable, Codable {
         case .oilCheck:
             return "3 min"
         case .waterCheck:
-            return "2 min"
+            return "2 - 8 min"
         case .brakeCheck:
             return "5 min"
         case .tireCalibration:
@@ -191,7 +191,7 @@ private extension TaskType {
     
     var waterCheckTutorial: TutorialModel {
         TutorialModel(
-            title: "Ver e Trocar Água",
+            title: "Ver e Trocar Água do Radiador",
             introImage: .asset(
                 name: "check_water",
                 fallback: "drop.fill"

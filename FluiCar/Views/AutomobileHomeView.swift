@@ -12,17 +12,17 @@ struct AutomobileHomeView: View {
     @State private var viewModel = AutomobileHomeViewModel()
     @State private var carToDelete: CarModel?
     @Environment(CoordinatorCore.self) private var coordinator
-
+    
     var body: some View {
         ZStack(alignment: .bottom) {
             Color("Background")
                 .ignoresSafeArea()
-
+            
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 24) {
                     vehiclesSection
                     tutorialsSection
-
+                    
                     Spacer(minLength: 100)
                 }
             }
@@ -48,6 +48,26 @@ struct AutomobileHomeView: View {
                     Image(systemName: "plus")
                 }
             }
+            
+            ToolbarSpacer(.fixed, placement: .topBarTrailing)
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button {
+                        coordinator.push(.terms)
+                    } label: {
+                        Text("Termos de Uso")
+                    }
+                    Button {
+                        coordinator.push(.privacy)
+                    } label: {
+                        Text("Politicas de Privacidade")
+                    }
+                    
+                } label: {
+                    Image(systemName: "ellipsis")
+                }
+            }
         }
         .alert(
             "Excluir automóvel?",
@@ -65,7 +85,7 @@ struct AutomobileHomeView: View {
             Text("Tem certeza que deseja excluir \(car.name)? As tarefas dele também serão removidas e essa ação não pode ser desfeita.")
         }
     }
-
+    
     private var vehiclesSection: some View {
         Group {
             if viewModel.hasLoaded {
@@ -111,13 +131,13 @@ struct AutomobileHomeView: View {
             }
         }
     }
-
+    
     private var tutorialsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Tutoriais de manutenção")
                 .font(.system(size: 24, weight: .semibold))
                 .padding(.horizontal)
-
+            
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     //isabella chamando um foreach pra executar a funcao
@@ -128,7 +148,7 @@ struct AutomobileHomeView: View {
                             CardTutorials(
                                 type: taskType,
                                 width: 200,
-                                imageHeight: 150
+                                imageHeight: 200
                             )
                         }
                         .buttonStyle(.plain)
@@ -142,7 +162,7 @@ struct AutomobileHomeView: View {
 
 struct EmptyVehiclesCardView: View {
     let onAdd: () -> Void
-
+    
     var body: some View {
         VStack(spacing: 14) {
             Image(systemName: "car.fill")
@@ -153,7 +173,7 @@ struct EmptyVehiclesCardView: View {
                 .font(.headline)
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
-
+            
             Text(
                 "Cadastre seu primeiro automóvel para acompanhar as manutenções e os prazos."
             )
@@ -180,7 +200,7 @@ struct AutomobileCardView: View {
     let carName: String
     let fuelType: String
     let nextTask: String
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Group {
@@ -191,7 +211,7 @@ struct AutomobileCardView: View {
                 } else {
                     ZStack {
                         Color.gray.opacity(0.3)
-
+                        
                         Image(systemName: "car.fill")
                             .font(.system(size: 40))
                             .foregroundColor(.red)
@@ -201,18 +221,18 @@ struct AutomobileCardView: View {
             .frame(width: 300, height: 180)
             .clipped()
             .cornerRadius(16)
-
+            
             HStack(spacing: 10) {
                 HStack {
                     Image(systemName: "car.fill")
                         .foregroundColor(.red)
-
+                    
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Modelo: \(modelName)")
                             .font(.caption2)
                             .foregroundColor(.gray)
                             .lineLimit(1)
-
+                        
                         Text(carName)
                             .font(.subheadline)
                             .fontWeight(.bold)
@@ -223,16 +243,16 @@ struct AutomobileCardView: View {
                 .padding(10)
                 .background(Color(.systemBackground))
                 .cornerRadius(12)
-
+                
                 HStack {
                     Image(systemName: "drop.circle.fill")
                         .foregroundColor(.red)
-
+                    
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Combustível")
                             .font(.caption2)
                             .foregroundColor(.gray)
-
+                        
                         Text(fuelType)
                             .font(.subheadline)
                             .fontWeight(.bold)
@@ -244,12 +264,12 @@ struct AutomobileCardView: View {
                 .background(Color(.systemBackground))
                 .cornerRadius(12)
             }
-
+            
             HStack(spacing: 6) {
                 Circle()
                     .fill(Color.red)
                     .frame(width: 8, height: 8)
-
+                
                 Text(nextTask)
                     .font(.subheadline)
                     .fontWeight(.medium)
