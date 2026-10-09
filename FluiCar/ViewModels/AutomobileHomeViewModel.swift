@@ -30,7 +30,7 @@ class AutomobileHomeViewModel {
         do {
             cars = try await dataBase.fetchAll()
         } catch {
-            print("Erro ao carregar automóvel: \(error)")
+            print("Erro ao carregar veículos: \(error)")
             cars = []
         }
         // Garante que as tarefas de cada carro existam antes de desenhar os cartões.
@@ -38,6 +38,17 @@ class AutomobileHomeViewModel {
         hasLoaded = true
     }
     
+    // Exclui o carro e recarrega a lista (o load também limpa as tarefas e lembretes dele)
+    func deleteCar(_ car: CarModel) async {
+        maintenance.cancelReminders(for: car)
+        do {
+            try await dataBase.delete(car)
+        } catch {
+            print("Erro ao excluir veículo: \(error)")
+        }
+        await loadCars()
+    }
+
     // Texto da próxima tarefa do carro (a mais próxima, incluindo as atrasadas)
     func nextTaskText(for car: CarModel) -> String {
         if let next = maintenance.upcomingRows(for: car.id, limit: 1).first {
