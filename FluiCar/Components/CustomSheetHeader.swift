@@ -24,10 +24,11 @@ struct CustomSheetHeader: ToolbarContent {
         ToolbarItem(placement: .topBarTrailing){
             Button(action: onSave) {
                 Image(systemName: "checkmark")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(.white)
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundStyle(isSaveDisabled ? Color.gray.opacity(0.5) : Color.backgroundCheck)
                     .frame(width: 44, height: 44)
-                    .background(Circle().fill(isSaveDisabled ? Color.gray.opacity(0.5) : Color(uiColor: .darkGray)))
+                    .background(Circle().fill(isSaveDisabled ? Color.gray.opacity(0.5) : Color.primary))
+                    
             }
             .disabled(isSaveDisabled)
         }
