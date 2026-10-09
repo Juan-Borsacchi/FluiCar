@@ -5,7 +5,6 @@
 //  Created by Juan Gabriel Borsacchi Marques on 06/10/26.
 //
 
-
 import SwiftUI
 
 struct LegalDocumentView: View {
@@ -14,15 +13,34 @@ struct LegalDocumentView: View {
     
     var body: some View {
         ScrollView {
-            Text(viewModel.markdownText)
-                .lineSpacing(6)
-                .tint(.blue)
-                .padding(sizeClass == .regular ? 40 : 20)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 24) {
+                // Cabeçalho da página
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(viewModel.documentType.title.uppercased())
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                    
+                    Text("Última atualização: \(viewModel.documentType.lastUpdated)")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.bottom, 8)
+                
+                Text(viewModel.markdownText)
+                    .font(.body)
+                    .lineSpacing(6)
+                    .foregroundColor(.primary)
+                    .tint(.blue)
+            }
+            .padding(sizeClass == .regular ? 40 : 24)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(Color(.systemGroupedBackground))
         .navigationTitle(viewModel.documentType.title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
     }
 }
 

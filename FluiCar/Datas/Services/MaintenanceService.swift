@@ -47,7 +47,7 @@ final class MaintenanceService {
             cars = try await repository.fetchAll()
             loadFailed = false
         } catch {
-            logger.error("Falha ao carregar veículos: \(error.localizedDescription, privacy: .public)")
+            logger.error("Falha ao carregar automóvel: \(error.localizedDescription, privacy: .public)")
             loadFailed = true
             hasLoaded = true
             return
@@ -57,7 +57,6 @@ final class MaintenanceService {
         hasLoaded = true
     }
 
-    /// Garante que cada carro tenha suas tarefas automáticas e remove as de carros apagados.
     private func synchronizeTasks() {
         let carIDs = Set(cars.map(\.id))
         let storedAutomatic = storage.loadAutomaticTasks()
@@ -130,7 +129,6 @@ final class MaintenanceService {
             return MaintenanceRow(task: task)
         }
 
-    /// Próximas tarefas de um carro (automáticas + customizadas), da mais próxima para a mais distante.
     func upcomingRows(for carID: UUID, limit: Int) -> [MaintenanceRow] {
             let automatic = automaticTasks
                 .filter { $0.carID == carID }
@@ -169,7 +167,7 @@ final class MaintenanceService {
         }
         
         switch text {
-        case "diário", "diariamente", "daily":
+        case "diária", "diário", "diariamente", "daily":
             return .daily
         case "semanal", "semanalmente", "weekly":
             return .weekly
@@ -189,7 +187,7 @@ final class MaintenanceService {
         let id = "custom-\(task.id.uuidString)"
         let title = "Lembrete: \(task.title)"
         
-        let body = (task.textDescription?.isEmpty == false) ? task.textDescription! : "Veículo: \(task.vehicleName)"
+        let body = (task.textDescription?.isEmpty == false) ? task.textDescription! : "automóvel: \(task.vehicleName)"
         
         guard let date = task.endDate ?? task.startDate else { return }
         
@@ -219,8 +217,7 @@ final class MaintenanceService {
         
     }
 
-    /// Mantém a tarefa "Seguro" do carro alinhada com o cadastro do veículo:
-    /// cria/atualiza quando o carro tem seguro e remove quando deixa de ter.
+   
     func syncInsuranceTask(for car: CarModel) async {
             
             let existing = car.tasks.first { $0.title == "Seguro" }
@@ -234,7 +231,7 @@ final class MaintenanceService {
                 CarTaskModel(
                     id: existing?.id ?? UUID(),
                     title: "Seguro",
-                    textDescription: existing?.textDescription ?? "Renovação do seguro do veículo.",
+                    textDescription: existing?.textDescription ?? "Renovação do seguro do automóvel.",
                     startDate: Date(),
                     endDate: insuranceAlarmDate(car.alarm ?? Date()),
                     frequency: "anual",
@@ -244,15 +241,32 @@ final class MaintenanceService {
             )
         }
 
-    /// O cadastro só pede a data; o lembrete dispara às 9h desse dia.
     private func insuranceAlarmDate(_ date: Date) -> Date {
         Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: date) ?? date
     }
 
+
+    @discardableResult
+    func completeCustomTask(_ task: CarTaskModel, in car: CarModel) -> Bool {
+        let rule = parseFrequency(task.frequency)
+        guard let due = task.endDate ?? task.startDate,
+              let next = rule.nextOccurrence(after: due) else {
+            deleteCustomTask(task)
+            return false
+        }
+
+        var updated = task
+        updated.endDate = next
+        saveCustomTask(updated, to: car)
+        return true
+    }
+
     func deleteCustomTask(_ task: CarTaskModel) {
+        scheduler.cancel(ids: [customReminderID(task.id)])
         Task {
             do {
                 try await repository.deleteTask(task)
+                await load()
             }catch{
                 logger.error("ERRO GRAVE: Falha ao deletar do banco: \(error.localizedDescription)")
             }
@@ -274,7 +288,7 @@ final class MaintenanceService {
         let scheduler = scheduler
         let id = automaticReminderID(task.id)
         let title = "Manutenção: \(task.type.maintenanceTitle)"
-        let body = "O veículo \(carName) precisa de atenção."
+        let body = "O automóvel \(carName) precisa de atenção."
         let date = task.dueDate
 
         Task {
@@ -287,7 +301,7 @@ final class MaintenanceService {
         let scheduler = scheduler
         let id = customReminderID(task.id)
         let title = "Lembrete: \(task.title)"
-        let body = task.note.isEmpty ? "Veículo: \(carName)" : task.note
+        let body = task.note.isEmpty ? "Automóvel: \(carName)" : task.note
         let date = task.alarmDate
         let repeatRule = task.frequency
 

@@ -13,14 +13,23 @@ enum Tabs: Hashable {
     case search
 }
 
+enum LegalDocumentType: String, Identifiable {
+    case term
+    case privacy
+    var id: String { rawValue }
+}
+
 struct TabBarsView: View {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
-    @State private var mostrarOnboarding: Bool = false
+    @State private var mostrarOnboarding: Bool = true
 
     @State private var selectedTab: Tabs = .carHome
     @State private var searchString = ""
+    
+    // Variável para controlar a tela cheia dos documentos
+    @State private var documentToPresent: LegalDocumentType?
+    
     @Environment(\.colorScheme) private var colorScheme
-
     @Environment(CoordinatorCore.self) private var coordinator
 
     var body: some View {
@@ -74,6 +83,30 @@ struct TabBarsView: View {
             onboardingView
                 .presentationBackground(Color(.systemBackground))
                 .interactiveDismissDisabled()
+                .fullScreenCover(item: $documentToPresent) { docType in
+                    NavigationStack {
+                        Group {
+                            if docType == .term {
+                                LegalDocumentView(viewModel: LegalDocumentViewModel(documentType: .termsOfUse))
+                            } else {
+                                LegalDocumentView(viewModel: LegalDocumentViewModel(documentType: .privacyPolicy))
+                            }
+                        }
+                        .toolbar {
+                            ToolbarItem(placement: .topBarLeading) {
+                                Button {
+                                    documentToPresent = nil
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "chevron.left")
+                                            .fontWeight(.semibold)
+                                        Text("Voltar")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
         }
     }
 
@@ -92,7 +125,7 @@ struct TabBarsView: View {
                     )
                 Spacer()
             }
-            .padding(.top, 55)
+            .padding(.top, 40)
             .padding(.bottom, 24)
 
             VStack(alignment: .leading, spacing: 14) {
@@ -110,7 +143,7 @@ struct TabBarsView: View {
             VStack(alignment: .leading, spacing: 24) {
                 onboardingItem(
                     icon: "car.fill",
-                    title: "Cuide dos seus veículos",
+                    title: "Cuide dos seus automóvel",
                     description: "Tenha as informações essenciais do seu automóvel sempre à mão."
                 )
 
@@ -126,8 +159,27 @@ struct TabBarsView: View {
                     description: "Tutoriais para garantir mais autonomia."
                 )
             }
-            .padding(.horizontal, 52)
+            .padding(.horizontal, 48)
 
+            Spacer()
+            
+            Text("Tocar em **continuar** implica que você leu e aceitou \n nossos [termos de uso](fluicar://term) e a nossa [política de privacidade](fluicar://privacy)")
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .tint(.blue)
+                .multilineTextAlignment(.leading)
+                .padding(.horizontal, 32)
+                .environment(\.openURL, OpenURLAction { url in
+                    if url.absoluteString == "fluicar://term" {
+                        documentToPresent = .term
+                        return .handled
+                    } else if url.absoluteString == "fluicar://privacy" {
+                        documentToPresent = .privacy
+                        return .handled
+                    }
+                    return .discarded
+                })
+            
             Spacer()
 
             Button {
@@ -162,12 +214,7 @@ struct TabBarsView: View {
                     .font(.system(size: 17))
                     .foregroundColor(.secondary)
             }
-            .padding(.horizontal, 30)
+            .padding(.horizontal, 20)
         }
     }
-}
-
-#Preview {
-    TabBarsView()
-        .environment(CoordinatorCore())
 }

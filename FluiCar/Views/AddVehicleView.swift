@@ -119,7 +119,7 @@ struct AddVehicleView: View {
                 .disabled(viewModel.years.isEmpty)
                 
             } footer: {
-                Text("• Você consegue acessar o modelo e o ano do seu veículo na parte traseira dele ou no manual do carro.")
+                Text("• Você consegue acessar o modelo e o ano do seu automóvel na parte traseira dele ou no manual do carro.")
                     .padding(.bottom)
             }
         }

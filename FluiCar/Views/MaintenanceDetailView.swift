@@ -24,7 +24,7 @@ struct MaintenanceDetailView: View {
                 )
             } else {
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 18) {
                         detailsSection
 
                         if !viewModel.tutorials.isEmpty {
@@ -193,7 +193,6 @@ struct MaintenanceDetailView: View {
                 .metallicBackground()
                 .clipShape(Capsule())
         }
-        .padding(.top, 48)
     }
 }
 

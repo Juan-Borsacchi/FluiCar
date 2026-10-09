@@ -30,7 +30,7 @@ class AutomobileHomeViewModel {
         do {
             cars = try await dataBase.fetchAll()
         } catch {
-            print("Erro ao carregar veículos: \(error)")
+            print("Erro ao carregar automóvel: \(error)")
             cars = []
         }
         // Garante que as tarefas de cada carro existam antes de desenhar os cartões.
