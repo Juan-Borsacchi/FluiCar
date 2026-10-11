@@ -5,6 +5,13 @@
 //  Created by Juan Gabriel Borsacchi Marques on 09/10/26.
 //
 
+//
+//  AutomaticTasksHintOverlay.swift
+//  FluiCar
+//
+//  Created by Juan Gabriel Borsacchi Marques on 09/10/26.
+//
+
 import SwiftUI
 
 extension View {
@@ -25,6 +32,14 @@ extension View {
 struct AutomaticTasksHintOverlay: View {
     var automaticTaskFrame: CGRect
     var dismissAction: () -> Void
+    
+    // Deteta se a tela está num formato compacto vertical (iPhone deitado)
+    @Environment(\.verticalSizeClass) var verticalSizeClass
+    
+    // Retorna true se for iPad OU se o iPhone estiver na horizontal (Landscape/Duo)
+    private var isPadOrLandscape: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad || verticalSizeClass == .compact
+    }
     
     var body: some View {
         ZStack {
@@ -51,7 +66,6 @@ struct AutomaticTasksHintOverlay: View {
                     .multilineTextAlignment(.center)
             }
             .shadow(color: .black.opacity(0.8), radius: 4, x: 0, y: 2)
-            // Fica sempre exatamente 60 pontos abaixo do último cartão
             .position(x: automaticTaskFrame.midX, y: automaticTaskFrame.maxY + 60)
             
             // 3. TEXTO DO BOTÃO PLUS (No topo direito)
@@ -59,33 +73,24 @@ struct AutomaticTasksHintOverlay: View {
                 Image(systemName: "arrow.up.right")
                     .font(.title2.bold())
                     .foregroundColor(.white)
-                    .padding(.trailing, 34)
+                    .padding(.trailing, isPadOrLandscape ? 12 : 34)
                 
                 Text("Toque aqui para criar\noutras tarefas.")
                     .font(.headline)
                     .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
+                    .multilineTextAlignment(isPadOrLandscape ? .trailing : .center)
             }
             .shadow(color: .black.opacity(0.8), radius: 4, x: 0, y: 2)
-            .padding(.trailing, 80)
-            .padding(.top, 95)
+            
+            // Mantém a margem lateral que alinha com o botão
+            .padding(.trailing, isPadOrLandscape ? 24 : 80)
+            
+            // AUMENTAR AQUI: mude o valor do iPad/Landscape para 180 ou 200.
+            // O 95 do iPhone em pé continua seguro e intocável!
+            .padding(.top, isPadOrLandscape ?  100 : 95)
+            
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
         }
         .ignoresSafeArea()
-    }
-}
-#Preview("Tutorial Overlay") {
-    ZStack {
-        Color.gray.ignoresSafeArea()
-        
-        Text("Conteúdo do App ao fundo")
-            .font(.title)
-            .foregroundColor(.white)
-        
-        AutomaticTasksHintOverlay(
-            automaticTaskFrame: CGRect(x: 200, y: 300, width: 360, height: 400)
-        ) {
-            print("Tutorial finalizado!")
-        }
     }
 }

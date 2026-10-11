@@ -19,7 +19,7 @@ struct MaintenanceView: View {
             ZStack {
                 Color("Background")
                     .ignoresSafeArea()
-                    .toolbar(hasSeenHint ? .visible : .hidden, for: .tabBar)
+                    .toolbar((!hasSeenHint && autoTaskFrame != .zero) ? .hidden : .visible, for: .tabBar)
                 
                 content
                 
