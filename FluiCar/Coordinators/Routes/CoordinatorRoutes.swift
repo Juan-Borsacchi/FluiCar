@@ -18,6 +18,8 @@ enum AppRoute: Hashable, Identifiable {
     case privacy
     case search
     case maintenanceDetail(MaintenanceTaskRef)
+    case aboutInfo
+    case appFeatures
 
     var id: String {
         String(describing: self)

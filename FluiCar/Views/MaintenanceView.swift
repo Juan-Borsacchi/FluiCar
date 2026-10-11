@@ -9,59 +9,82 @@ import SwiftUI
 struct MaintenanceView: View {
     @State private var viewModel = MaintenanceViewModel()
     @Environment(CoordinatorCore.self) private var coordinator
-
+    
+    @AppStorage("hasSeenMaintenanceScreenHint") private var hasSeenHint: Bool = false
+    
+    @State private var autoTaskFrame: CGRect = .zero
+    
     var body: some View {
-        ZStack {
-            Color("Background")
-                .ignoresSafeArea()
-
-            content
-        }
-        .alert(
-            viewModel.pendingAction?.title ?? "Confirmar",
-            isPresented: $viewModel.isShowingConfirmation,
-            presenting: viewModel.pendingAction
-        ) { action in
-            Button(action.confirmLabel, role: action.isDelete ? .destructive : nil) {
-                viewModel.confirmPendingAction()
+        GeometryReader { geometry in
+            ZStack {
+                Color("Background")
+                    .ignoresSafeArea()
+                    .toolbar(hasSeenHint ? .visible : .hidden, for: .tabBar)
+                
+                content
+                
+                if !hasSeenHint && autoTaskFrame != .zero {
+                    AutomaticTasksHintOverlay(
+                        automaticTaskFrame: autoTaskFrame
+                    ) {
+                        hasSeenHint = true
+                    }
+                    .zIndex(100)
+                    .transition(.opacity)
+                }
             }
-            Button("Cancelar", role: .cancel) {
-                viewModel.cancelPendingAction()
+            .onPreferenceChange(ViewFramePreferenceKey.self) { frames in
+                DispatchQueue.main.async {
+                    if let taskFrame = frames["autoTaskCard"] {
+                        self.autoTaskFrame = taskFrame
+                    }
+                }
             }
-        } message: { action in
-            Text(action.message)
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar { toolbarContent }
-        .task { await viewModel.load() }
-        .sheet(isPresented: $viewModel.isShowingAddSheet) {
-                    NavigationStack {
-                        AddCustomTaskView(vehicles: viewModel.vehicles) { newTask in
-                            if let selectedCar = viewModel.vehicles.first(where: { $0.name == newTask.vehicleName }) {
-                                viewModel.saveNewTask(newTask, to: selectedCar)
-                            } else {
-                                if let firstCar = viewModel.vehicles.first {
-                                    viewModel.saveNewTask(newTask, to: firstCar)
-                                }
+            .alert(
+                viewModel.pendingAction?.title ?? "Confirmar",
+                isPresented: $viewModel.isShowingConfirmation,
+                presenting: viewModel.pendingAction
+            ) { action in
+                Button(action.confirmLabel, role: action.isDelete ? .destructive : nil) {
+                    viewModel.confirmPendingAction()
+                }
+                Button("Cancelar", role: .cancel) {
+                    viewModel.cancelPendingAction()
+                }
+            } message: { action in
+                Text(action.message)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { toolbarContent }
+            .task { await viewModel.load() }
+            .sheet(isPresented: $viewModel.isShowingAddSheet) {
+                NavigationStack {
+                    AddCustomTaskView(vehicles: viewModel.vehicles) { newTask in
+                        if let selectedCar = viewModel.vehicles.first(where: { $0.name == newTask.vehicleName }) {
+                            viewModel.saveNewTask(newTask, to: selectedCar)
+                        } else {
+                            if let firstCar = viewModel.vehicles.first {
+                                viewModel.saveNewTask(newTask, to: firstCar)
                             }
                         }
                     }
                 }
-        .alert(viewModel.alertTitle, isPresented: $viewModel.isShowingAlert) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(viewModel.alertMessage)
+            }
+            .alert(viewModel.alertTitle, isPresented: $viewModel.isShowingAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(viewModel.alertMessage)
+            }
         }
     }
-
-
+    
     @ViewBuilder
     private var content: some View {
         switch viewModel.screenState {
         case .loading:
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-
+            
         case .failed:
             ContentUnavailableView {
                 Label("Não foi possível carregar", systemImage: "exclamationmark.triangle.fill")
@@ -72,14 +95,14 @@ struct MaintenanceView: View {
                     Task { await viewModel.load() }
                 }
             }
-
+            
         case .noCars:
             ContentUnavailableView(
                 "Nenhuma manutenção prevista",
                 systemImage: "wrench.and.screwdriver.fill",
                 description: Text("Cadastre um carro primeiro para ver as manutenções previstas.")
             )
-
+            
         case .content:
             VStack(spacing: 0) {
                 statusPicker
@@ -87,7 +110,7 @@ struct MaintenanceView: View {
             }
         }
     }
-
+    
     private var statusPicker: some View {
         Picker("Status", selection: $viewModel.selectedStatus) {
             ForEach(MaintenanceStatusFilter.allCases) { status in
@@ -98,13 +121,13 @@ struct MaintenanceView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
     }
-
+    
     private var taskList: some View {
         List {
             ForEach(viewModel.automaticRows) { row in
                 taskRow(row)
             }
-
+            
             ForEach(viewModel.customRows) { row in
                 taskRow(row)
             }
@@ -120,8 +143,7 @@ struct MaintenanceView: View {
             }
         }
     }
-
-  
+    
     private func taskRow(_ row: MaintenanceRow) -> some View {
         Button {
             coordinator.push(.maintenanceDetail(row.ref))
@@ -130,6 +152,13 @@ struct MaintenanceView: View {
                 title: row.title,
                 vehicle: row.vehicleName,
                 dueDate: row.dueText
+            )
+            .background(
+                Group {
+                    if !row.isCustom {
+                        Color.clear.readFrame(id: "autoTaskCard")
+                    }
+                }
             )
         }
         .buttonStyle(.plain)
@@ -146,13 +175,13 @@ struct MaintenanceView: View {
         }
         .contextMenu {
             completeButton(for: row)
-
+            
             if row.isCustom {
                 deleteButton(for: row)
             }
         }
     }
-
+    
     private func completeButton(for row: MaintenanceRow) -> some View {
         Button {
             viewModel.requestComplete(row)
@@ -161,7 +190,7 @@ struct MaintenanceView: View {
         }
         .tint(.green)
     }
-
+    
     private func deleteButton(for row: MaintenanceRow) -> some View {
         Button(role: .destructive) {
             viewModel.requestDelete(row)
@@ -169,8 +198,7 @@ struct MaintenanceView: View {
             Label("Excluir", systemImage: "trash")
         }
     }
-
-
+    
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
@@ -179,7 +207,7 @@ struct MaintenanceView: View {
                 .fixedSize(horizontal: true, vertical: false)
         }
         .sharedBackgroundVisibility(.hidden)
-
+        
         ToolbarItemGroup(placement: .topBarTrailing) {
             Button {
                 viewModel.isShowingAddSheet = true
@@ -188,12 +216,12 @@ struct MaintenanceView: View {
             }
             .disabled(!viewModel.canAddTask)
             .accessibilityLabel("Nova tarefa")
-
+            
             Menu {
                 Picker("Filtrar", selection: $viewModel.selectedFilter) {
                     Text("Todos").tag(TaskFilter.all)
                 }
-
+                
                 if !viewModel.vehicles.isEmpty {
                     Menu {
                         Picker("Automóvel", selection: $viewModel.selectedFilter) {

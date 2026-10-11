@@ -52,19 +52,8 @@ struct AutomobileHomeView: View {
             ToolbarSpacer(.fixed, placement: .topBarTrailing)
             
             ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    Button {
-                        coordinator.push(.terms)
-                    } label: {
-                        Image(systemName:"text.document.fill")
-                        Text("Termos de Uso")
-                    }
-                    Button {
-                        coordinator.push(.privacy)
-                    } label: {
-                        Image(systemName:"checkmark.shield.fill")
-                        Text("Politicas de Privacidade")
-                    }
+                Button {
+                    coordinator.push(.aboutInfo)
                     
                 } label: {
                     Image(systemName: "info")
