@@ -16,6 +16,7 @@ struct AboutView: View {
         GridItem(.flexible(), spacing: 16)
     ]
     
+    
     let team: [TeamMember] = [
         TeamMember(role: "Designer", name: "Vinicius de Brito", imageName: "vinicius"),
         TeamMember(role: "Desenvolvedora", name: "Isabella Avelina", imageName: "isabella"),
