@@ -14,7 +14,6 @@ struct LegalDocumentView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                // Cabeçalho da página
                 VStack(alignment: .leading, spacing: 6) {
                     Text(viewModel.documentType.title.uppercased())
                         .font(.title2)
@@ -37,7 +36,7 @@ struct LegalDocumentView: View {
             .padding(sizeClass == .regular ? 40 : 24)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(Color(.systemGroupedBackground))
+        .background(Color.background)
         .navigationTitle(viewModel.documentType.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)

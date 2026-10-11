@@ -21,12 +21,11 @@ enum LegalDocumentType: String, Identifiable {
 
 struct TabBarsView: View {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
-    @State private var mostrarOnboarding: Bool = true
+    @State private var mostrarOnboarding: Bool = false
 
     @State private var selectedTab: Tabs = .carHome
     @State private var searchString = ""
     
-    // Variável para controlar a tela cheia dos documentos
     @State private var documentToPresent: LegalDocumentType?
     
     @Environment(\.colorScheme) private var colorScheme
@@ -218,3 +217,9 @@ struct TabBarsView: View {
         }
     }
 }
+
+#Preview {
+    TabBarsView()
+        .environment(CoordinatorCore())
+}
+
