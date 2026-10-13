@@ -48,7 +48,10 @@ struct AddVehicleView: View {
         .onChange(of: viewModel.selectedBrandCode) { oldValue, newValue in handleBrandChange(oldValue: oldValue, newValue: newValue) }
         .onChange(of: viewModel.selectedModelCode) { oldValue, newValue in handleModelChange(oldValue: oldValue, newValue: newValue) }
         .confirmationDialog("Escolha uma opção", isPresented: $showActionSheet, titleVisibility: .visible) { actionSheetButtons }
-        .sheet(isPresented: $showCamera) { ImagePicker(selectedImage: $viewModel.carUIImage, sourceType: .camera) }
+        .fullScreenCover(isPresented: $showCamera) {
+                    ImagePicker(selectedImage: $viewModel.carUIImage, sourceType: .camera)
+                        .ignoresSafeArea()
+                }
         .sheet(isPresented: $showGallery) { GalleryPicker(selectedImage: $viewModel.carUIImage) }
         .alert(viewModel.carToEdit != nil ? "Automóvel Atualizado" : "Automóvel Salvo", isPresented: $showSuccessAlert) { successAlertButtons } message: { successAlertMessage }
     }
