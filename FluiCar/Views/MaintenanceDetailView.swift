@@ -24,7 +24,7 @@ struct MaintenanceDetailView: View {
                 )
             } else {
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 18) {
                         detailsSection
 
                         if !viewModel.tutorials.isEmpty {
@@ -185,7 +185,7 @@ struct MaintenanceDetailView: View {
                 viewModel.completeTask()
             }
         } label: {
-            Text(viewModel.isCustom ? "Concluir Visualização" : "Tarefa concluída")
+            Text(viewModel.isCustom ? "Concluir tarefa" : "Tarefa concluída")
                 .font(.headline)
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
@@ -193,7 +193,6 @@ struct MaintenanceDetailView: View {
                 .metallicBackground()
                 .clipShape(Capsule())
         }
-        .padding(.top, 48)
     }
 }
 

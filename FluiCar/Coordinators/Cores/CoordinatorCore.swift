@@ -102,6 +102,10 @@ final class CoordinatorCore: CoordinatorProtocol {
             SearchView()
         case .maintenanceDetail(let ref):
             MaintenanceDetailView(viewModel: MaintenanceDetailViewModel(ref: ref))
+        case .aboutInfo:
+                AboutView()
+        case .appFeatures:
+                AppFeaturesView()
         }
     }
 }

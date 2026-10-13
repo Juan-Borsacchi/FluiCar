@@ -48,7 +48,10 @@ struct AddVehicleView: View {
         .onChange(of: viewModel.selectedBrandCode) { oldValue, newValue in handleBrandChange(oldValue: oldValue, newValue: newValue) }
         .onChange(of: viewModel.selectedModelCode) { oldValue, newValue in handleModelChange(oldValue: oldValue, newValue: newValue) }
         .confirmationDialog("Escolha uma opção", isPresented: $showActionSheet, titleVisibility: .visible) { actionSheetButtons }
-        .sheet(isPresented: $showCamera) { ImagePicker(selectedImage: $viewModel.carUIImage, sourceType: .camera) }
+        .fullScreenCover(isPresented: $showCamera) {
+                    ImagePicker(selectedImage: $viewModel.carUIImage, sourceType: .camera)
+                        .ignoresSafeArea()
+                }
         .sheet(isPresented: $showGallery) { GalleryPicker(selectedImage: $viewModel.carUIImage) }
         .alert(viewModel.carToEdit != nil ? "Automóvel Atualizado" : "Automóvel Salvo", isPresented: $showSuccessAlert) { successAlertButtons } message: { successAlertMessage }
     }
@@ -108,7 +111,7 @@ struct AddVehicleView: View {
                     items: viewModel.carModels.map { (String($0.code), $0.name) },
                     fallbackName: viewModel.selectedModelCode.isEmpty ? nil : viewModel.carToEdit?.model
                 )
-                .disabled(viewModel.carModels.isEmpty && viewModel.carToEdit == nil)
+                .disabled(viewModel.carModels.isEmpty)
                 
                 SearchablePicker(
                     title: "Ano",
@@ -116,10 +119,10 @@ struct AddVehicleView: View {
                     items: viewModel.years.map { (String($0.code), viewModel.formatPickerYear($0.name)) },
                     fallbackName: viewModel.selectedYearCode.isEmpty ? nil : (viewModel.carToEdit != nil ? viewModel.formatPickerYear(viewModel.carToEdit!.year.description) : nil)
                 )
-                .disabled(viewModel.years.isEmpty && viewModel.carToEdit == nil)
+                .disabled(viewModel.years.isEmpty)
                 
             } footer: {
-                Text("• Você consegue acessar o modelo e o ano do seu veículo na parte traseira dele ou no manual do carro.")
+                Text("• Você consegue acessar o modelo e o ano do seu automóvel na parte traseira dele ou no manual do carro.")
                     .padding(.bottom)
             }
         }
@@ -146,19 +149,28 @@ struct AddVehicleView: View {
     }
     
     private var insuranceSection: some View {
-        Section(header: Text("Seguro").textCase(.none).font(.subheadline).bold()) {
-            Toggle("Possui Seguro?", isOn: $viewModel.insurance)
-                .tint(.green)
-            if viewModel.insurance {
-                DatePicker("Alarme", selection: $viewModel.alarm, displayedComponents: .date)
-                Picker("Frequencia", selection: $viewModel.frequency) {
-                    Text("Mensal").tag(FrequencyType.monthly)
-                    Text("Semestral").tag(FrequencyType.semiannual)
-                    Text("Anual").tag(FrequencyType.annual)
+            Section {
+                Toggle("Possui Seguro?", isOn: $viewModel.insurance)
+                    .tint(.green)
+                
+                if viewModel.insurance {
+                    DatePicker("Alarme", selection: $viewModel.alarm, displayedComponents: .date)
+                    Picker("Frequencia", selection: $viewModel.frequency) {
+                        Text("Mensal").tag(FrequencyType.monthly)
+                        Text("Semestral").tag(FrequencyType.semiannual)
+                        Text("Anual").tag(FrequencyType.annual)
+                    }
                 }
+            } header: {
+                Text("Seguro")
+                    .textCase(.none)
+                    .font(.subheadline)
+                    .bold()
+            } footer: {
+                Text("• Adicione um alarme para não esquecer de pagar seu seguro.")
+                    .padding(.bottom)
             }
         }
-    }
     
     // MARK: - Modifiers Separados
     
@@ -173,7 +185,7 @@ struct AddVehicleView: View {
                         }
                     }
                 },
-                isSaveDisabled: (viewModel.carToEdit == nil || viewModel.isChangingFipe) ? viewModel.selectedYearCode.isEmpty : false
+                isSaveDisabled: viewModel.selectedYearCode.isEmpty
             )
         }
     

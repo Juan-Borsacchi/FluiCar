@@ -266,6 +266,11 @@ final class MaintenanceService {
         return true
     }
 
+    /// Cancela os lembretes das tarefas manuais de um carro que vai ser excluído.
+    func cancelReminders(for car: CarModel) {
+        scheduler.cancel(ids: car.tasks.map { customReminderID($0.id) })
+    }
+
     func deleteCustomTask(_ task: CarTaskModel) {
         scheduler.cancel(ids: [customReminderID(task.id)])
         Task {

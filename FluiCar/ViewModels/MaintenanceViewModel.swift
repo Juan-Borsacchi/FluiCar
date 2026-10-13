@@ -59,6 +59,7 @@ final class MaintenanceViewModel {
     private let service: MaintenanceService
 
     var selectedFilter: TaskFilter = .all
+    var selectedStatus: MaintenanceStatusFilter = .all
     var isShowingAddSheet = false
     var isShowingAlert = false
     var isShowingConfirmation = false
@@ -91,6 +92,7 @@ final class MaintenanceViewModel {
         sortedAutomaticTasks
             .filter { selectedCarID == nil || $0.carID == selectedCarID }
             .compactMap { service.automaticRow(for: $0) }
+            .filter { selectedStatus.includes($0) }
     }
 
     var customRows: [MaintenanceRow] {
@@ -100,22 +102,13 @@ final class MaintenanceViewModel {
             .filter { !$0.isAutomatic }
             .sorted { ($0.endDate ?? Date()) < ($1.endDate ?? Date()) }
             .map { MaintenanceRow(task: $0) }
+            .filter { selectedStatus.includes($0) }
     }
 
+    var hasVisibleRows: Bool { !automaticRows.isEmpty || !customRows.isEmpty }
+
     private var sortedAutomaticTasks: [AutomaticTask] {
-        let tasks = service.automaticTasks
-        switch selectedFilter {
-        case .all:
-            return tasks
-        case .dueSoon, .vehicle:
-            return tasks.sorted { $0.dueDate < $1.dueDate }
-        case .recent:
-            return tasks.sorted { lhs, rhs in
-                let left = lhs.lastCheckDate ?? .distantPast
-                let right = rhs.lastCheckDate ?? .distantPast
-                return left == right ? lhs.dueDate < rhs.dueDate : left > right
-            }
-        }
+        service.automaticTasks.sorted { $0.dueDate < $1.dueDate }
     }
 
 

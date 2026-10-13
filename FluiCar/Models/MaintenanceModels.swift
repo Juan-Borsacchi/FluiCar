@@ -9,22 +9,44 @@
 import Foundation
 
 
+/// Filtro de automóvel (menu do toolbar): todos os carros ou um carro específico.
 enum TaskFilter: Hashable, Identifiable {
     case all
-    case dueSoon
-    case recent
     case vehicle(UUID)
 
     var id: Self { self }
+}
 
-    static let general: [TaskFilter] = [.all, .dueSoon, .recent]
+
+/// Segmento de status exibido no topo da tela.
+enum MaintenanceStatusFilter: CaseIterable, Identifiable {
+    case all
+    case onTime
+    case overdue
+
+    var id: Self { self }
 
     var title: String {
         switch self {
         case .all: return "Todas"
-        case .dueSoon: return "Prazo para vencer"
-        case .recent: return "Manutenção recente"
-        case .vehicle: return "Veículo"
+        case .onTime: return "Em dia"
+        case .overdue: return "Atrasadas"
+        }
+    }
+
+    var emptyTitle: String {
+        switch self {
+        case .all: return "Nenhuma manutenção"
+        case .onTime: return "Nenhuma manutenção em dia"
+        case .overdue: return "Nenhuma manutenção atrasada"
+        }
+    }
+
+    func includes(_ row: MaintenanceRow) -> Bool {
+        switch self {
+        case .all: return true
+        case .onTime: return !row.isOverdue
+        case .overdue: return row.isOverdue
         }
     }
 }
@@ -126,6 +148,13 @@ struct MaintenanceRow: Identifiable, Hashable {
         case .custom: return true
         case .automatic: return false
         }
+    }
+
+    /// Atrasada quando o prazo já passou. Tarefas só com data valem até o fim do dia.
+    var isOverdue: Bool {
+        guard let dueDate else { return false }
+        let limit = includesTime ? Date() : Calendar.current.startOfDay(for: Date())
+        return dueDate < limit
     }
 
     var dueText: String {
