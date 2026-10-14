@@ -66,7 +66,7 @@ struct AboutView: View {
             
             Section {
                 Text("fluicarstaff@gmail.com")
-                    .foregroundColor(.primary)
+                    .foregroundColor(.blue)
             } header: {
                 Text("Duvidas e melhorias")
                     .font(.headline)

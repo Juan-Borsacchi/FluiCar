@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import OSLog
 
 final class DataService: VehicleRepositoryProtocol {
     
@@ -28,7 +29,7 @@ final class DataService: VehicleRepositoryProtocol {
             do {
                 self.modelContainer = try ModelContainer(for: schema, configurations: [fallbackConfig])
                 self.modelContext = modelContainer.mainContext
-                print("Aviso: Banco recriado em memória devido a erro de migração: \(error)")
+                Logger.database.warning("Aviso: Banco recriado em memória devido a erro de migração: \(error)")
             } catch {
                 fatalError("Erro crítico absoluto ao inicializar o ModelContainer: \(error)")
             }

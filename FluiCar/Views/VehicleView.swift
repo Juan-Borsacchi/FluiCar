@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import OSLog
 
 @MainActor
 struct VehicleView: View {
@@ -183,7 +184,7 @@ struct VehicleView: View {
                                     viewModel.car.kilometers = "0"
                                     await viewModel.updateKilometers()
                                 }
-                                print("Quilometragem atualizada para: \(viewModel.car.kilometers)")
+                                Logger.interface.debug("Quilometragem atualizada para: \(viewModel.car.kilometers)")
                             }
                         }
 //                        .keyboardShortcut(.defaultAction)
