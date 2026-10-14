@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Observation
+import OSLog
 
 @MainActor
 @Observable
@@ -30,7 +31,7 @@ class AutomobileHomeViewModel {
         do {
             cars = try await dataBase.fetchAll()
         } catch {
-            print("Erro ao carregar veículos: \(error)")
+            Logger.database.error("Erro ao carregar veículos: \(error)")
             cars = []
         }
         // Garante que as tarefas de cada carro existam antes de desenhar os cartões.
@@ -44,7 +45,7 @@ class AutomobileHomeViewModel {
         do {
             try await dataBase.delete(car)
         } catch {
-            print("Erro ao excluir veículo: \(error)")
+            Logger.database.error("Erro ao excluir veículo: \(error)")
         }
         await loadCars()
     }

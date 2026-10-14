@@ -185,7 +185,7 @@ struct MaintenanceDetailView: View {
                 viewModel.completeTask()
             }
         } label: {
-            Text(viewModel.isCustom ? "Concluir tarefa" : "Tarefa concluída")
+            Text("Concluir tarefa")
                 .font(.headline)
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
