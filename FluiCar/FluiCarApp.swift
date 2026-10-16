@@ -23,6 +23,7 @@ struct FluiCarApp: App {
                 }
                 
             }
+            .environment(\.locale, Locale(identifier: "pt_BR"))
         }
     }
 }

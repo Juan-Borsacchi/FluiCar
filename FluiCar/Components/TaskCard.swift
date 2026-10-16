@@ -28,6 +28,7 @@ struct TaskCard: View {
                     .frame(width: 8, height: 8)
 
                 Text("Prazo final: \(dueDate)")
+                    .environment(\.locale, Locale(identifier: "pt_BR"))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

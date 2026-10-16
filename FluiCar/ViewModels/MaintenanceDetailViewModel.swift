@@ -89,6 +89,8 @@ final class MaintenanceDetailViewModel {
                     MaintenanceDetailRow(
                         label: "Próxima checagem",
                         value: task.dueDate.formatted(date: .abbreviated, time: .omitted)
+                            
+                        
                     )
                 ]
             }

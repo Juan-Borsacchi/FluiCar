@@ -14,6 +14,7 @@ enum AppRoute: Hashable, Identifiable {
     case editTask(CarTaskModel)
     case task
     case tutorial(TaskType)
+    case tutorialStep(TaskType, Int)
     case terms
     case privacy
     case search
