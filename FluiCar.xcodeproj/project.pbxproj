@@ -93,11 +93,12 @@
 				};
 			};
 			buildConfigurationList = 3711F54A30646E5100C4D6C0 /* Build configuration list for PBXProject "FluiCar" */;
-			developmentRegion = en;
+			developmentRegion = "pt-BR";
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				"pt-BR",
 			);
 			mainGroup = 3711F54630646E5100C4D6C0;
 			minimizedProjectReferenceProxies = 1;
@@ -163,7 +164,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = A54TARWH57;
+				DEVELOPMENT_TEAM = LVWH22XD6V;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -227,7 +228,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = A54TARWH57;
+				DEVELOPMENT_TEAM = LVWH22XD6V;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -259,18 +260,20 @@
 				DEVELOPMENT_TEAM = LVWH22XD6V;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "use camera";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "use foto";
+				INFOPLIST_FILE = FluiCar/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FluiCar;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Use a câmera para registrar fotos do seu automóvel e anexa-las ao cadastrá-lo.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Permita o acesso à galeria para escolher fotos do seu automóvel e anexa-las ao cadastrá-lo.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PARALLELUM_API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiIxY2JkMjdmOS1jNzhiLTQ3ZmYtOWU3Yi0xMTk4NDYzNjgzNWEiLCJlbWFpbCI6Imp1YW5ib3JzYWNjaGkyMDA2QGdtYWlsLmNvbSIsImp0aSI6ImE1ZDgwZDI1LTY1NDctNDk4Ny05MzdjLTBlNWFjMTZmNjI1NCIsImlhdCI6MTc5MDAxMjk2OX0.-qgNHPwpdVOFhX1-1lraG7UM1Jcv8xCmMvUy8e_8Zys";
 				PRODUCT_BUNDLE_IDENTIFIER = com.grupoijlv.FluiCar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -297,18 +300,20 @@
 				DEVELOPMENT_TEAM = LVWH22XD6V;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "use camera";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "use foto";
+				INFOPLIST_FILE = FluiCar/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FluiCar;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Use a câmera para registrar fotos do seu automóvel e anexa-las ao cadastrá-lo.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Permita o acesso à galeria para escolher fotos do seu automóvel e anexa-las ao cadastrá-lo.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PARALLELUM_API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiIxY2JkMjdmOS1jNzhiLTQ3ZmYtOWU3Yi0xMTk4NDYzNjgzNWEiLCJlbWFpbCI6Imp1YW5ib3JzYWNjaGkyMDA2QGdtYWlsLmNvbSIsImp0aSI6ImE1ZDgwZDI1LTY1NDctNDk4Ny05MzdjLTBlNWFjMTZmNjI1NCIsImlhdCI6MTc5MDAxMjk2OX0.-qgNHPwpdVOFhX1-1lraG7UM1Jcv8xCmMvUy8e_8Zys";
 				PRODUCT_BUNDLE_IDENTIFIER = com.grupoijlv.FluiCar;
 				PRODUCT_NAME = "$(TARGET_NAME)";

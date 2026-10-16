@@ -2,7 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CHAVE_PARALLELUM</key>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>Portuguese</string>
+		<string>en</string>
+	</array>
+	<key>PARALLELUM_API_KEY</key>
 	<string>$(PARALLELUM_API_KEY)</string>
 </dict>
 </plist>

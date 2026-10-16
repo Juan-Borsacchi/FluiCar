@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 enum Tabs: Hashable {
     case carHome
@@ -113,15 +114,17 @@ struct TabBarsView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Spacer()
-                Image("LogoFluiCar")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 124, height: 124)
-                    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    .shadow(
-                        color: colorScheme == .dark ? .white.opacity(0.12) : .black.opacity(0.10),
-                        radius: 15, x: 5, y: 10
-                    )
+                if let appIcon = Bundle.main.appIcon {
+                    Image(uiImage: appIcon)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 124, height: 124)
+                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        .shadow(
+                            color: colorScheme == .dark ? .white.opacity(0.12) : .black.opacity(0.10),
+                            radius: 15, x: 5, y: 10
+                        )
+                }
                 Spacer()
             }
             .padding(.top, 40)
@@ -142,7 +145,7 @@ struct TabBarsView: View {
             VStack(alignment: .leading, spacing: 24) {
                 onboardingItem(
                     icon: "car.fill",
-                    title: "Cuide dos seus automóvel",
+                    title: "Cuide dos seus automóveis",
                     description: "Tenha as informações essenciais do seu automóvel sempre à mão."
                 )
 
@@ -154,7 +157,7 @@ struct TabBarsView: View {
 
                 onboardingItem(
                     icon: "inset.filled.topthird.middlethird.bottomthird.rectangle",
-                    title: "Veja soluções de problema",
+                    title: "Veja soluções de problemas",
                     description: "Tutoriais para garantir mais autonomia."
                 )
             }
@@ -162,7 +165,7 @@ struct TabBarsView: View {
 
             Spacer()
             
-            Text("Tocar em **continuar** implica que você leu e aceitou \n nossos [termos de uso](fluicar://term) e a nossa [política de privacidade](fluicar://privacy)")
+            Text("Tocar em **continuar** implica que você leu e aceitou \n nossos [Termos de Uso](fluicar://term) e a nossa [Política de Privacidade](fluicar://privacy)")
                 .font(.footnote)
                 .foregroundColor(.secondary)
                 .tint(.blue)
@@ -217,6 +220,19 @@ struct TabBarsView: View {
         }
     }
 }
+
+extension Bundle {
+    var appIcon: UIImage? {
+        if let icons = infoDictionary?["CFBundleIcons"] as? [String: Any],
+           let primaryIcon = icons["CFBundlePrimaryIcon"] as? [String: Any],
+           let iconFiles = primaryIcon["CFBundleIconFiles"] as? [String],
+           let lastIcon = iconFiles.last {
+            return UIImage(named: lastIcon)
+        }
+        return nil
+    }
+}
+
 
 #Preview {
     TabBarsView()

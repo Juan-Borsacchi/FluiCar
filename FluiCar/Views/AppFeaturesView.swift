@@ -9,7 +9,6 @@
 import SwiftUI
 
 struct AppFeaturesView: View {
-    @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     
     let features: [String] = [
@@ -33,7 +32,7 @@ struct AppFeaturesView: View {
                                     ? Color.white
                                     : Color(UIColor.systemGray6)
                                 )
-                        .glassEffect(.regular .interactive(),  in: .rect(cornerRadius: 16))
+                        .glassEffect(.regular,  in: .rect(cornerRadius: 16))
                         .cornerRadius(16)
                 }
             }
@@ -42,15 +41,5 @@ struct AppFeaturesView: View {
         .background(Color.background)
         .navigationTitle("Funcionalidades")
         .navigationBarTitleDisplayMode(.large)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: {
-                    dismiss()
-                }) {
-                    Image(systemName: "chevron.left")
-                }
-            }
-        }
     }
 }

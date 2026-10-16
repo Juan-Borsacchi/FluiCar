@@ -229,12 +229,14 @@ private struct EditMaintenanceSheet: View {
                     selection: $viewModel.draftLastCheck,
                     displayedComponents: .date
                 )
+                .environment(\.locale, Locale(identifier: "pt_BR"))
 
                 DatePicker(
                     "Próxima checagem",
                     selection: $viewModel.draftNextCheck,
                     displayedComponents: .date
                 )
+                .environment(\.locale, Locale(identifier: "pt_BR"))
             }
         }
         .navigationTitle("Editar \(viewModel.title)")

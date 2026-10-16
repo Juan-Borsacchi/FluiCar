@@ -14,98 +14,167 @@ final class CoordinatorCore: CoordinatorProtocol {
     var carPath = NavigationPath()
     var maintenancePath = NavigationPath()
     var searchPath = NavigationPath()
-    var sheet: AppRoute? = nil
+    var sheet: AppRoute?
+
     var path: NavigationPath {
         get {
             switch currentTab {
-            case .carHome: return carPath
-            case .maintenance: return maintenancePath
-            case .search: return searchPath
+            case .carHome:
+                return carPath
+
+            case .maintenance:
+                return maintenancePath
+
+            case .search:
+                return searchPath
             }
         }
         set {
             switch currentTab {
-            case .carHome: carPath = newValue
-            case .maintenance: maintenancePath = newValue
-            case .search: searchPath = newValue
+            case .carHome:
+                carPath = newValue
+
+            case .maintenance:
+                maintenancePath = newValue
+
+            case .search:
+                searchPath = newValue
             }
         }
     }
-    
+
     var currentTab: Tabs = .carHome
-    
+
     func push(_ route: AppRoute) {
         switch currentTab {
         case .carHome:
             carPath.append(route)
+
         case .maintenance:
             maintenancePath.append(route)
+
         case .search:
             searchPath.append(route)
         }
     }
-    
+
     func pop() {
         switch currentTab {
         case .carHome:
-            if !carPath.isEmpty { carPath.removeLast() }
+            if !carPath.isEmpty {
+                carPath.removeLast()
+            }
+
         case .maintenance:
-            if !maintenancePath.isEmpty { maintenancePath.removeLast() }
+            if !maintenancePath.isEmpty {
+                maintenancePath.removeLast()
+            }
+
         case .search:
-            if !searchPath.isEmpty { searchPath.removeLast() }
+            if !searchPath.isEmpty {
+                searchPath.removeLast()
+            }
         }
     }
-    
+
+    func pop(count: Int) {
+        guard count > 0 else { return }
+
+        for _ in 0..<count {
+            pop()
+        }
+    }
+
     func popToRoot() {
         switch currentTab {
         case .carHome:
             carPath = NavigationPath()
+
         case .maintenance:
             maintenancePath = NavigationPath()
+
         case .search:
             searchPath = NavigationPath()
         }
     }
-    
+
     func presentSheet(_ route: AppRoute) {
-        self.sheet = route
+        sheet = route
     }
-    
+
     func dismissSheet() {
-        self.sheet = nil
+        sheet = nil
     }
-    
+
     @ViewBuilder
     func build(_ route: AppRoute) -> some View {
         switch route {
         case .home:
             AutomobileHomeView()
+
         case .vehicle(let car):
-            VehicleView(viewModel: VehicleViewModel(car: car))
+            VehicleView(
+                viewModel: VehicleViewModel(car: car)
+            )
+
         case .addVehicle:
-            AddVehicleView(viewModel: AddVehicleViewModel())
+            AddVehicleView(
+                viewModel: AddVehicleViewModel()
+            )
+
         case .editVehicle(let car):
-            AddVehicleView(viewModel: AddVehicleViewModel(car: car))
+            AddVehicleView(
+                viewModel: AddVehicleViewModel(car: car)
+            )
+
         case .addTask:
             Text("Tela Add Task")
+
         case .editTask:
             Text("Tela Edit Task")
+
         case .task:
             MaintenanceView()
+
         case .tutorial(let taskType):
-            TutorialView(taskType: taskType)
+            TutorialView(
+                taskType: taskType,
+                phase: .intro
+            )
+
+        case .tutorialStep(let taskType, let stepIndex):
+            TutorialView(
+                taskType: taskType,
+                phase: .step(stepIndex)
+            )
+
         case .terms:
-            LegalDocumentView(viewModel: LegalDocumentViewModel(documentType: .termsOfUse))
+            LegalDocumentView(
+                viewModel: LegalDocumentViewModel(
+                    documentType: .termsOfUse
+                )
+            )
+
         case .privacy:
-            LegalDocumentView(viewModel: LegalDocumentViewModel(documentType: .privacyPolicy))
+            LegalDocumentView(
+                viewModel: LegalDocumentViewModel(
+                    documentType: .privacyPolicy
+                )
+            )
+
         case .search:
             SearchView()
+
         case .maintenanceDetail(let ref):
-            MaintenanceDetailView(viewModel: MaintenanceDetailViewModel(ref: ref))
+            MaintenanceDetailView(
+                viewModel: MaintenanceDetailViewModel(ref: ref)
+            )
+
         case .aboutInfo:
-                AboutView()
+            AboutView()
+
         case .appFeatures:
-                AppFeaturesView()
+            AppFeaturesView()
         }
     }
 }

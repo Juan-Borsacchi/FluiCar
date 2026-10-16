@@ -39,6 +39,7 @@ struct AddVehicleView: View {
             kilometersSection
             insuranceSection
         }
+        .dismissKeyboardOnTap()
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle(viewModel.carToEdit != nil ? "Editar Automóvel" : "Novo Automóvel")
         .navigationBarTitleDisplayMode(.inline)
@@ -97,7 +98,8 @@ struct AddVehicleView: View {
     }
     
     private var pickersSection: some View {
-            Section {
+        Section() {
+                
                 SearchablePicker(
                     title: "Marca",
                     selection: $viewModel.selectedBrandCode,
@@ -121,9 +123,17 @@ struct AddVehicleView: View {
                 )
                 .disabled(viewModel.years.isEmpty)
                 
-            } footer: {
-                Text("• Você consegue acessar o modelo e o ano do seu automóvel na parte traseira dele ou no manual do carro.")
-                    .padding(.bottom)
+        } header: {
+            Text("Sobre o Automóvel")
+                .textCase(.none)
+                .font(.subheadline)
+                .bold()
+        }
+        
+        footer: {
+            Text("* Os campos Marca, Modelo e Ano são obrigatórios para cadastrar o seu Automóvel!")
+                .foregroundStyle(.red)
+                .padding(.bottom)
             }
         }
     
@@ -134,16 +144,24 @@ struct AddVehicleView: View {
                     viewModel.carName = viewModel.textLimit(text: newValue, limit: 35)
                 }
                 
+                
         }
     }
     
     private var kilometersSection: some View {
         Section(header: Text("Quilometragem").textCase(.none).font(.subheadline).bold()) {
             TextField("Ex: 15.000 km", text: $viewModel.carKilometers)
+               
                 .disabled(viewModel.selectedYearCode.contains("32000"))
                 .keyboardType(.numberPad)
                 .onChange(of: viewModel.carKilometers) { oldValue, newValue in
-                    viewModel.formatKilometers(oldValue: oldValue, newValue: newValue)
+                    let cleanText = newValue.filter { "0123456789.".contains($0) }
+                    
+                    if newValue != cleanText {
+                        viewModel.carKilometers = cleanText
+                    } else {
+                        viewModel.formatKilometers(oldValue: oldValue, newValue: newValue)
+                    }
                 }
         }
     }
@@ -154,8 +172,9 @@ struct AddVehicleView: View {
                     .tint(.green)
                 
                 if viewModel.insurance {
-                    DatePicker("Alarme", selection: $viewModel.alarm, displayedComponents: .date)
-                    Picker("Frequencia", selection: $viewModel.frequency) {
+                    DatePicker("Lembrete", selection: $viewModel.alarm, displayedComponents: .date)
+                        .environment(\.locale, Locale(identifier: "pt_BR"))
+                    Picker("Frequência", selection: $viewModel.frequency) {
                         Text("Mensal").tag(FrequencyType.monthly)
                         Text("Semestral").tag(FrequencyType.semiannual)
                         Text("Anual").tag(FrequencyType.annual)
@@ -167,7 +186,7 @@ struct AddVehicleView: View {
                     .font(.subheadline)
                     .bold()
             } footer: {
-                Text("• Adicione um alarme para não esquecer de pagar seu seguro.")
+                Text("• Adicione um lembrete para não esquecer de pagar o seu seguro.")
                     .padding(.bottom)
             }
         }

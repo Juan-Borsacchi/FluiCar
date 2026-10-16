@@ -170,7 +170,15 @@ struct VehicleView: View {
                         TextField("Nova quilometragem", text: $viewModel.car.kilometers)
                             .keyboardType(.numberPad)
                             .onChange(of: viewModel.car.kilometers) { _, newValue in
-                                viewModel.car.kilometers = viewModel.textLimit(text: newValue, limit: 7)
+                                let onlyNumbers = newValue.filter { "0123456789".contains($0) }
+                                
+                                if viewModel.car.kilometers != onlyNumbers {
+                                    viewModel.car.kilometers = viewModel.textLimit(text: onlyNumbers, limit: 7)
+                                    
+                                        
+                                } else {
+                                    viewModel.car.kilometers = viewModel.textLimit(text: newValue, limit: 7)
+                                }
                             }
                         
                         Button("Cancelar", role: .cancel) {
@@ -180,9 +188,11 @@ struct VehicleView: View {
                             Task {
                                 if !viewModel.car.kilometers.isEmpty  {
                                     await viewModel.updateKilometers()
+                                    await viewModel.fetchInformations()
                                 }else{
                                     viewModel.car.kilometers = "0"
                                     await viewModel.updateKilometers()
+                                    await viewModel.fetchInformations()
                                 }
                                 Logger.interface.debug("Quilometragem atualizada para: \(viewModel.car.kilometers)")
                             }

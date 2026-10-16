@@ -33,4 +33,6 @@ struct TutorialStep: Identifiable {
     let description: String
     let image: TutorialImage
     let warningMessage: String?
+    let warningTitle: String?
+
 }

@@ -13,7 +13,7 @@ struct ParallelumService: VehicleServiceProtocol {
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        if let apiKey = Bundle.main.object(forInfoDictionaryKey: "CHAVE_PARALLELUM") as? String {
+        if let apiKey = Bundle.main.object(forInfoDictionaryKey: "PARALLELUM_API_KEY") as? String {
             request.setValue(apiKey, forHTTPHeaderField: "X-Subscription-Token")
         }
         
@@ -60,7 +60,7 @@ struct ParallelumService: VehicleServiceProtocol {
         
         if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
             let message = String(data: data, encoding: .utf8) ?? "Error"
-            Logger.network.error("HTTP ERROR: \(httpResponse.statusCode) - \(message)")          
+            Logger.network.error("HTTP ERROR: \(httpResponse.statusCode) - \(message)")
             throw URLError(.badServerResponse)
         }
 
