@@ -19,7 +19,10 @@ struct MaintenanceView: View {
             ZStack {
                 Color("Background")
                     .ignoresSafeArea()
-                    .toolbar((!hasSeenHint && autoTaskFrame != .zero) ? .hidden : .visible, for: .tabBar)
+                    .toolbar(
+                        (!hasSeenHint && autoTaskFrame != .zero) ? .hidden : .automatic,
+                        for: .tabBar
+                    )
                 
                 content
                 
@@ -152,6 +155,7 @@ struct MaintenanceView: View {
                 title: row.title,
                 vehicle: row.vehicleName,
                 dueDate: row.dueText
+                
             )
             .background(
                 Group {

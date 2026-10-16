@@ -7,6 +7,7 @@
 import SwiftUI
 import AVKit
 import CoreMedia
+import OSLog
 
 struct SplashView: View {
     @Binding var isActive: Bool
@@ -59,7 +60,7 @@ struct SplashView: View {
     }
     private func setupVideo() {
         guard let url = Bundle.main.url(forResource: "AnimationSplash", withExtension: "mov") else {
-            print("Erro: Não encontrei o ficheiro de vídeo da Splash Screen.")
+            Logger.interface.error("Erro: Não encontrei o ficheiro de vídeo da Splash Screen.")
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 withAnimation { self.isActive = true }
             }

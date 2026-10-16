@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 struct ParallelumService: VehicleServiceProtocol {
     let baseUrl = "https://fipe.parallelum.com.br/api/v2/"
@@ -12,7 +13,7 @@ struct ParallelumService: VehicleServiceProtocol {
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        if let apiKey = Bundle.main.object(forInfoDictionaryKey: "CHAVE_PARALLELUM") as? String {
+        if let apiKey = Bundle.main.object(forInfoDictionaryKey: "PARALLELUM_API_KEY") as? String {
             request.setValue(apiKey, forHTTPHeaderField: "X-Subscription-Token")
         }
         
@@ -26,7 +27,7 @@ struct ParallelumService: VehicleServiceProtocol {
         
         if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
             let message = String(data: data, encoding: .utf8) ?? "Error"
-            print("HTTP ERROR: \(httpResponse.statusCode) - \(message)")
+            Logger.network.error("HTTP ERROR: \(httpResponse.statusCode) - \(message)")
             throw URLError(.badServerResponse)
         }
 
@@ -42,7 +43,7 @@ struct ParallelumService: VehicleServiceProtocol {
         
         if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
             let message = String(data: data, encoding: .utf8) ?? "Error"
-            print("HTTP ERROR: \(httpResponse.statusCode) - \(message)")
+            Logger.network.error("HTTP ERROR: \(httpResponse.statusCode) - \(message)")
             throw URLError(.badServerResponse)
         }
 
@@ -51,7 +52,7 @@ struct ParallelumService: VehicleServiceProtocol {
     }
     
     func fetchYears(request: YearRequest) async throws -> [YearResponse] {
-        print("Fetching years for model: \(request.modelId)")
+        Logger.network.error("Fetching years for model: \(request.modelId)")
         let urlString = baseUrl + request.vehicleType + "/brands/\(request.brandId)/models/\(request.modelId)/years"
         
         let urlRequest = try createRequestWithAuthentication(for: urlString)
@@ -59,7 +60,7 @@ struct ParallelumService: VehicleServiceProtocol {
         
         if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
             let message = String(data: data, encoding: .utf8) ?? "Error"
-            print("HTTP ERROR: \(httpResponse.statusCode) - \(message)")
+            Logger.network.error("HTTP ERROR: \(httpResponse.statusCode) - \(message)")
             throw URLError(.badServerResponse)
         }
 
@@ -75,7 +76,7 @@ struct ParallelumService: VehicleServiceProtocol {
         
         if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
             let message = String(data: data, encoding: .utf8) ?? "Error"
-            print("HTTP ERROR: \(httpResponse.statusCode) - \(message)")
+            Logger.network.error("HTTP ERROR: \(httpResponse.statusCode) - \(message)")
             throw URLError(.badServerResponse)
         }
         

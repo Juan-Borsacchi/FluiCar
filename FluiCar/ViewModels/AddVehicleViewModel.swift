@@ -6,6 +6,7 @@
 //
 import SwiftUI
 import Observation
+import OSLog
 
 @MainActor
 @Observable
@@ -101,7 +102,7 @@ class AddVehicleViewModel {
                 self.brands = result
                 self.isLoading = false
             } catch {
-                print("Error on fetch brand: \(error)")
+                Logger.network.error("Error on fetch brand: \(error)")
                 self.isLoading = false
             }
         }
@@ -118,7 +119,7 @@ class AddVehicleViewModel {
                 self.carModels = result
                 self.isLoading = false
             } catch {
-                print("Error on fetch car models: \(error)")
+                Logger.network.error("Error on fetch car models: \(error)")
                 self.isLoading = false
             }
         }
@@ -134,9 +135,9 @@ class AddVehicleViewModel {
                 let result = try await service.fetchYears(request: request)
                 self.years = result
                 self.isLoading = false
-                print("Success! \(result.count) years found.")
+                Logger.network.debug("Success! \(result.count) years found.")
             } catch {
-                print("Error on fetch years: \(error)")
+                Logger.network.error("Error on fetch years: \(error)")
                 self.isLoading = false
             }
         }
@@ -162,7 +163,7 @@ class AddVehicleViewModel {
                 self.showPriceAlert = true
                 self.isLoading = false
             } catch {
-                print("Error on fetch FIPE informations: \(error)")
+                Logger.network.error("Error on fetch FIPE informations: \(error)")
                 self.isLoading = false
             }
         }
@@ -206,7 +207,7 @@ class AddVehicleViewModel {
                 try await dataBase.update(updatedCar)
                 await maintenance.syncInsuranceTask(for: updatedCar)
                 isLoading = false
-                print("Data updated")
+                Logger.interface.debug("Data updated")
                 return updatedCar
                 
             } else {
@@ -242,11 +243,11 @@ class AddVehicleViewModel {
                 try await dataBase.save(vehicleToSave)
                 await maintenance.syncInsuranceTask(for: vehicleToSave)
                 isLoading = false
-                print("Data saved")
+                Logger.interface.debug("Data saved")
                 return vehicleToSave
             }
         } catch {
-            print("Error ao buscar FIPE para salvar: \(error)")
+            Logger.network.error("Error ao buscar FIPE para salvar: \(error)")
             isLoading = false
             return nil
         }
@@ -320,7 +321,7 @@ class AddVehicleViewModel {
                 }
             }
         } catch {
-            print("Erro ao carregar dados de edição: \(error)")
+            Logger.database.error("Erro ao carregar dados de edição: \(error)")
         }
         
         isLoading = false

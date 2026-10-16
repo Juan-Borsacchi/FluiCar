@@ -9,7 +9,6 @@ import SwiftUI
 
 struct AboutView: View {
     @Environment(CoordinatorCore.self) private var coordinator
-    @Environment(\.dismiss) var dismiss
     
     let columns = [
         GridItem(.flexible(), spacing: 16),
@@ -65,10 +64,10 @@ struct AboutView: View {
             .listRowInsets(EdgeInsets())
             
             Section {
-                Text("fluicarstaff@gmail.com")
-                    .foregroundColor(.primary)
+                Link("fluicarstaff@gmail.com", destination: URL(string: "mailto:fluicarstaff@gmail.com")!)
+                    .tint(.blue)
             } header: {
-                Text("Duvidas e melhorias")
+                Text("Dúvidas e melhorias")
                     .font(.headline)
                     .foregroundColor(.primary)
                     .textCase(nil)
@@ -80,15 +79,5 @@ struct AboutView: View {
         .background(Color.background)
         .navigationTitle("FluiCar")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: {
-                    coordinator.pop()
-                }) {
-                    Image(systemName: "chevron.left")
-                }
-            }
-        }
     }
 }

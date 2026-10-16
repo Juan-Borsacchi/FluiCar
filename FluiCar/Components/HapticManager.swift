@@ -5,6 +5,7 @@
 //  Created by Juan Gabriel Borsacchi Marques on 05/10/26.
 //
 
+import OSLog
 
 import CoreHaptics
 import UIKit
@@ -28,7 +29,7 @@ final class HapticManager {
             engine = try CHHapticEngine()
             try engine?.start()
         } catch {
-            print("Não foi possível iniciar o mecanismo háptico: \(error)")
+            Logger.system.error("Não foi possível iniciar o mecanismo háptico: \(error)")
         }
     }
 
@@ -92,7 +93,7 @@ final class HapticManager {
             try engine?.start()
             try player?.start(atTime: CHHapticTimeImmediate)
         } catch {
-            print("Erro ao reproduzir haptic de aviso: \(error)")
+            Logger.system.error("Erro ao reproduzir haptic de aviso: \(error)")
             fallbackWarning()
         }
     }

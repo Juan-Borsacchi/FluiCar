@@ -8,12 +8,12 @@
 import Foundation
 
 enum TaskType: String, Identifiable, CaseIterable, Hashable, Codable {
-    case oilChange = "troca_oleo"
     case oilCheck = "verificar_oleo"
     case waterCheck = "verificar_agua"
     case brakeCheck = "verificar_freios"
     case tireCalibration = "calibrar_pneus"
     case batteryCheck = "verificar_bateria"
+    case oilChange = "troca_oleo"
     
     var id: String {
         rawValue
@@ -21,8 +21,6 @@ enum TaskType: String, Identifiable, CaseIterable, Hashable, Codable {
     
     var displayTitle: String {
         switch self {
-        case .oilChange:
-            return "Troca de Óleo"
         case .oilCheck:
             return "Verificação de Óleo"
         case .waterCheck:
@@ -33,13 +31,13 @@ enum TaskType: String, Identifiable, CaseIterable, Hashable, Codable {
             return "Calibragem dos Pneus"
         case .batteryCheck:
             return "Checagem da Bateria"
+        case .oilChange:
+            return "Troca de Óleo"
         }
     }
     
     var duration: String {
         switch self {
-        case .oilChange:
-            return "8 min"
         case .oilCheck:
             return "3 min"
         case .waterCheck:
@@ -50,6 +48,8 @@ enum TaskType: String, Identifiable, CaseIterable, Hashable, Codable {
             return "3 min"
         case .batteryCheck:
             return "5 min"
+        case .oilChange:
+            return "8 min"
         }
     }
     
@@ -64,8 +64,6 @@ enum TaskType: String, Identifiable, CaseIterable, Hashable, Codable {
     
     var tutorialData: TutorialModel {
         switch self {
-        case .oilChange:
-            return oilChangeTutorial
         case .oilCheck:
             return oilCheckTutorial
         case .waterCheck:
@@ -76,69 +74,13 @@ enum TaskType: String, Identifiable, CaseIterable, Hashable, Codable {
             return tireCalibrationTutorial
         case .batteryCheck:
             return batteryCheckTutorial
+        case .oilChange:
+            return oilChangeTutorial
         }
     }
 }
 
 private extension TaskType {
-    var oilChangeTutorial: TutorialModel {
-        TutorialModel(
-            title: "Troca de Óleo",
-            introImage: .asset(
-                name: "change_oil",
-                fallback: "drop.fill"
-            ),
-            introDescription: "Entenda como funciona a troca de óleo do motor e o que é feito nesse processo.",
-            introNote: "Aviso: Antes de realizar a troca do óleo, verifique o tutorial e o nível do óleo.",
-            materials: [
-                TutorialMaterial(
-                    name: "Óleo de motor",
-                    description: "Consulte o manual do automóvel para confirmar o tipo do óleo: sintético, semissintético ou mineral."
-                ),
-                TutorialMaterial(
-                    name: "Filtro de óleo",
-                    description: "Use o modelo específico para o motor do seu carro."
-                ),
-                TutorialMaterial(
-                    name: "Arruela de vedação",
-                    description: "A arruela fica no parafuso do cárter e ajuda a evitar vazamentos."
-                )
-            ],
-            steps: [
-                TutorialStep(
-                    title: "Passo 1: Esvaziamento do óleo antigo",
-                    description: """
-                    Você terá que ter acesso à parte de baixo do carro. Use um macaco automotivo acompanhado de cavaletes de segurança.
-                    
-                    Deite-se embaixo do motor e procure pelo filtro de óleo e pelo parafuso do cárter.
-                    
-                    Posicione uma bacia embaixo do parafuso, solte-o com uma chave e deixe o óleo antigo escorrer até o fim.
-                    """,
-                    image: .asset(
-                        name: "step1_oil",
-                        fallback: "wrench.and.screwdriver.fill"
-                    ),
-                    warningMessage: "Aviso: Nunca fique embaixo do carro apoiado apenas pelo macaco hidráulico."
-                ),
-                TutorialStep(
-                    title: "Passo 2: Substituição do filtro e abastecimento",
-                    description: """
-                    Assim que o óleo antigo terminar de escorrer, desenrosque o filtro antigo e troque-o por um novo.
-                    
-                    Substitua também a arruela de vedação, recoloque o plugue no cárter e aperte-o.
-                    
-                    Depois, coloque o óleo novo na quantidade indicada pelo manual e use a vareta para conferir o nível.
-                    """,
-                    image: .asset(
-                        name: "change_oil",
-                        fallback: "drop.fill"
-                    ),
-                    warningMessage: "Aviso: Lubrifique a borracha do filtro novo com um pouco de óleo e aperte-o apenas com a força das mãos."
-                )
-            ]
-        )
-    }
-    
     var oilCheckTutorial: TutorialModel {
         TutorialModel(
             title: "Verificação de Óleo",
@@ -168,7 +110,8 @@ private extension TaskType {
                         name: "step1_coil",
                         fallback: "magnifyingglass"
                     ),
-                    warningMessage: "Aviso: Se o motor estiver funcionando ou recém-desligado, a leitura poderá ficar incorreta."
+                    warningMessage: "Aviso: Se o motor estiver funcionando ou recém-desligado, a leitura poderá ficar incorreta.",
+                    warningTitle: "Possível erro de leitura"
                 ),
                 TutorialStep(
                     title: "Passo 2: Medição do nível",
@@ -179,11 +122,12 @@ private extension TaskType {
                     
                     Se estiver próximo do mínimo, complete usando o mesmo tipo de óleo recomendado pelo manual.
                     """,
-                    image:  .asset(
+                    image: .asset(
                         name: "step2_coil",
                         fallback: "magnifyingglass"
                     ),
-                    warningMessage: "Aviso: O óleo não deve ficar abaixo da marca mínima nem acima da marca máxima."
+                    warningMessage: "Aviso: O óleo não deve ficar abaixo da marca mínima nem acima da marca máxima.",
+                    warningTitle: "Risco de danos ao automóvel"
                 )
             ]
         )
@@ -216,7 +160,7 @@ private extension TaskType {
                 TutorialStep(
                     title: "Passo 1: Localização e inspeção visual",
                     description: """
-                    Abra o capô e localize o reservatório de expansão.
+                    Abra o capô e procure pelo reservatório de expansão, procure por um pote plástico translúcido com linhas de MÍN/MÁX e um líquido colorido no interior.
                     
                     Observe as marcações de mínimo e máximo na lateral do reservatório.
                     
@@ -226,7 +170,8 @@ private extension TaskType {
                         name: "step1_cwater",
                         fallback: "drop.fill"
                     ),
-                    warningMessage: "Aviso: Nunca abra a tampa do radiador ou do reservatório com o motor quente."
+                    warningMessage: "Aviso: Nunca abra a tampa do reservatório com o motor quente. O sistema trabalha sob alta pressão e o líquido fervente pode espirrar, causando queimaduras graves.",
+                    warningTitle: "Risco de acidente grave"
                 ),
                 TutorialStep(
                     title: "Passo 2: Adicionando o fluido",
@@ -241,7 +186,8 @@ private extension TaskType {
                         name: "step2_cwater",
                         fallback: "drop.fill"
                     ),
-                    warningMessage: "Aviso: Se for necessário completar o reservatório toda semana ou todo mês, pode existir um vazamento."
+                    warningMessage: "Aviso: Se for necessário completar o reservatório toda semana ou todo mês, pode existir um vazamento.",
+                    warningTitle: "Risco de danos ao automóvel"
                 )
             ]
         )
@@ -271,16 +217,17 @@ private extension TaskType {
                     title: "Passo 1: Inspeção visual",
                     description: """
                     Aponte uma lanterna pelos espaços da roda para iluminar o sistema.
-                        
+                    
                     Procure pelo disco de freio (comum nas rodas dianteiras) e observe se há riscos profundos, rachaduras ou sinais de desgaste excessivo.
-                     
+                    
                     Nota: Se o automóvel possui calotas fechadas ou freios a tambor (comuns nas rodas traseiras), não é possível fazer essa inspeção visual sem remover a roda.
                     """,
                     image: .asset(
                         name: "step1_cbrake",
                         fallback: "exclamationmark.triangle.fill"
                     ),
-                    warningMessage: "Aviso: Nunca toque nos discos logo após dirigir. Eles podem estar extremamente quentes."
+                    warningMessage: "Aviso: Nunca toque nos discos logo após dirigir. Eles podem estar extremamente quentes.",
+                    warningTitle: "Risco de acidente"
                 ),
                 TutorialStep(
                     title: "Passo 2: Avaliação do desgaste",
@@ -295,7 +242,8 @@ private extension TaskType {
                         name: "step2_cbrake",
                         fallback: "exclamationmark.triangle.fill"
                     ),
-                    warningMessage: "Aviso: Se houver vibração forte ou ruídos durante a frenagem, procure uma oficina."
+                    warningMessage: "Aviso: Se houver vibração forte ou ruídos durante a frenagem, procure uma oficina.",
+                    warningTitle: "Risco de danos ao automóvel"
                 )
             ]
         )
@@ -338,26 +286,31 @@ private extension TaskType {
                         name: "step1_tcalibrate",
                         fallback: "gauge.with.dots.needle.67percent"
                     ),
-                    warningMessage: "Aviso: Não esvazie um pneu quente para tentar atingir a pressão recomendada."
+                    warningMessage: "Aviso: Não esvazie um pneu quente para tentar atingir a pressão recomendada.",
+                    warningTitle: "Possível erro de leitura"
                 ),
                 TutorialStep(
-                    title: "Passo 2: Ajuste da pressão",
+                    title: "Passo 2: Ajuste da pressão e calibrando no posto",
                     description: """
-                    Se a pressão estiver abaixo da recomendada, adicione ar aos poucos.
+                    Digite o valor recomendado no visor do calibrador e retire a tampa da válvula do pneu.
                     
-                    Se estiver acima, libere pequenas quantidades e confira novamente.
+                    Encaixe a mangueira com firmeza na válvula: o aparelho faz o ajuste sozinho. Se a pressão estiver abaixo da recomendada, ele adiciona ar aos poucos, porém se estiver acima, ele libera o excesso automaticamente.
                     
-                    Recoloque as tampas das válvulas ao finalizar.
+                    Mantenha o bico pressionado até o sinal sonoro (bip) confirmar que a pressão foi atingida.
+                    
+                    Ao terminar, não esqueça de colocar as tampas das válvulas no lugar.
                     """,
                     image: .asset(
                         name: "step2_tcalibrate",
                         fallback: "gauge.with.dots.needle.67percent"
                     ),
-                    warningMessage: "Aviso: Andar com o pneu murcho gasta as laterais e consome mais combustível. Pneu muito cheio gasta o centro e reduz a estabilidade."
+                    warningMessage: "Aviso: Andar com o pneu murcho gasta as laterais e consome mais combustível. Pneu muito cheio gasta o centro e reduz a estabilidade.",
+                    warningTitle: "Risco de danos ao automóvel"
                 )
             ]
         )
     }
+    
     var batteryCheckTutorial: TutorialModel {
         TutorialModel(
             title: "Checagem da Bateria",
@@ -365,48 +318,114 @@ private extension TaskType {
                 name: "check_batery",
                 fallback: "battery.100percent"
             ),
-            introDescription: "Aprenda a identificar sinais de desgaste ou problemas na bateria do seu automóvel.",
+            introDescription: "Aprenda a identificar sinais de desgaste na bateria e a testar se ela e o alternador estão funcionando corretamente.",
             introNote: "Aviso: Faça a inspeção com o carro desligado, em local ventilado e sem chamas ou faíscas.",
             materials: [
                 TutorialMaterial(
                     name: "Lanterna",
-                    description: "Use a lanterna para visualizar melhor a carcaça e os terminais da bateria."
+                    description: "Para iluminar a carcaça, polos e verificar a presença de corrosão ou vazamentos."
                 ),
                 TutorialMaterial(
-                    name: "Multímetro",
-                    description: "Pode ser usado para medir a tensão e a saúde elétrica da bateria."
+                    name: "Multímetro ou voltímetro",
+                    description: "Aparelho para medir a tensão elétrica da bateria em repouso e com o motor funcionando."
                 )
             ],
             steps: [
                 TutorialStep(
-                    title: "Passo 1: Inspeção visual e de sintomas",
+                    title: "Passo 1: Inspeção visual e física",
                     description: """
-                        Antes de abrir o capô, note se a partida anda "pesada", luzes ou painel oscilam ou a multimídia reinicia ao dar a partida.
-                        
-                        Com o carro desligado, abra o capô e localize a bateria.
-                        
-                        Use uma lanterna para verificar se a carcaça tem estufamentos, rachaduras ou vazamentos, e se os terminais (+) e (-) estão firmes e livres daquele pó esverdeado/branco (zinabre).
-                        """,
+                    Antes de abrir o capô, repare nos sintomas: partida pesada, relógio zerando ou painel oscilando são indícios de bateria no fim da vida útil.
+                    
+                    Com o motor desligado, abra o capô e localize a bateria. Use a lanterna para examinar a carcaça.
+                    
+                    Se houver pó branco/azulado nos polos (zinabre), limpe com cuidado usando água morna e bicarbonato. Verifique também se os cabos estão bem presos e sem folga.
+                    """,
                     image: .asset(
                         name: "step1_cbatery",
                         fallback: "battery.100percent"
                     ),
-                    warningMessage: "Aviso: Se houver cheiro de 'ovo podre' ou se a carcaça estiver estufada, a bateria pode estar sobrecarregada ou fervendo. Nunca toque no zinabre sem proteção."
+                    warningMessage: "Aviso: Carcaça estufada, trincada ou com cheiro de 'ovo podre' indica falha grave e risco de vazamento de ácido. Se notar isso, troque a bateria de imediato e não faça os testes elétricos.",
+                    warningTitle: "Risco de acidente grave"
                 ),
                 TutorialStep(
-                    title: "Passo 2: Teste com multímetro",
+                    title: "Passo 2: Medição e diagnóstico final",
                     description: """
-                        Com o automóvel desligado há mais de 30 minutos, ajuste o multímetro em tensão contínua (DCV ou escala de 20V).
-                        
-                        Encoste a ponta vermelha no terminal positivo (+) e a preta no negativo (-). A leitura deve ficar entre 12.4V e 12.6V.
-                        
-                        Depois, ligue o motor: a tensão deve subir para algo entre 13.5V e 14.7V. Se ficar abaixo de 13V com o carro ligado, o alternador pode estar falhando.
-                        """,
+                    Ajuste o multímetro para 20V DC (tensão contínua). Conecte a ponteira vermelha no polo (+) e a preta no polo (-):
+                    
+                    1. Com o motor desligado (há pelo menos 30 min) e as ponteiras conectadas, verifique:
+                    Se no painel do multímetro aparecer 12.4V a 12.6V significa que a bateria está saudável e com carga total.
+                    Se aparecer abaixo de 12.4V significa carga baixa ou fim de vida útil. Procure um especialista para avaliar possível substituição da bateria.
+                    
+                    2. Dê a partida e verifique novamente com o motor ligado:
+                    Se no painel do multímetro aparecer 13.5V a 14.7V significa que o alternador está funcionando perfeitamente. Seu sistema elétrico está aprovado e o teste está concluído!
+                    Se aparecer abaixo de 13.0V ou acima de 14.8V significa falha no alternador ou no regulador de tensão. Procure um autoelétrico para reparo imediato.
+                    """,
                     image: .asset(
                         name: "step2_cbatery",
                         fallback: "battery.100percent"
                     ),
-                    warningMessage: "Aviso: Se a tensão cair para menos de 9.6V no exato instante da partida, a bateria provavelmente já não segura mais carga."
+                    warningMessage: "Aviso: Se durante a partida a voltagem despencar para menos de 9.6V, as placas internas da bateria perderam a capacidade de retenção de corrente (hora de trocá-la).",
+                    warningTitle: "Risco de danos ao automóvel"
+                )
+            ]
+        )
+    }
+    
+    var oilChangeTutorial: TutorialModel {
+        TutorialModel(
+            title: "Troca de Óleo",
+            introImage: .asset(
+                name: "change_oil",
+                fallback: "drop.fill"
+            ),
+            introDescription: "Entenda como funciona a troca de óleo do motor e o que é feito nesse processo.",
+            introNote: "Aviso: Antes de realizar a troca do óleo, verifique o tutorial e o nível do óleo.",
+            materials: [
+                TutorialMaterial(
+                    name: "Óleo de motor",
+                    description: "Consulte o manual do automóvel para confirmar o tipo do óleo: sintético, semissintético ou mineral."
+                ),
+                TutorialMaterial(
+                    name: "Filtro de óleo",
+                    description: "Use o modelo específico para o motor do seu carro."
+                ),
+                TutorialMaterial(
+                    name: "Arruela de vedação",
+                    description: "A arruela fica no parafuso do cárter e ajuda a evitar vazamentos."
+                )
+            ],
+            steps: [
+                TutorialStep(
+                    title: "Passo 1: Esvaziamento do óleo antigo",
+                    description: """
+                    Você terá que ter acesso à parte de baixo do carro. Use um macaco automotivo acompanhado de cavaletes de segurança.
+                    
+                    Deite-se embaixo do motor e procure pelo filtro de óleo e pelo parafuso do cárter, uma bandeja metálica localizada na parte de baixo do motor.
+                    
+                    Posicione uma bacia embaixo do parafuso, solte-o com uma chave e deixe o óleo antigo escorrer até o fim.
+                    """,
+                    image: .asset(
+                        name: "step1_oil",
+                        fallback: "wrench.and.screwdriver.fill"
+                    ),
+                    warningMessage: "Aviso: Nunca fique embaixo do carro apoiado apenas pelo macaco hidráulico.",
+                    warningTitle: "Risco de acidente grave"
+                ),
+                TutorialStep(
+                    title: "Passo 2: Substituição do filtro e abastecimento",
+                    description: """
+                    Assim que o óleo antigo terminar de escorrer, desenrosque o filtro antigo e troque-o por um novo.
+                    
+                    Substitua a arruela de vedação do parafuso do cárter por uma nova. Em seguida, recoloque o parafuso no lugar e aperte com firmeza, sem colocar força excessiva para evitar espanar a rosca do cárter.
+                    
+                    Com o parafuso do cárter bem fechado, volte para cima e localize a tampa de óleo no topo do motor (ela tem o símbolo de uma latinha de óleo pingando ou a palavra "OIL"). Remova a tampa, use um funil para não derramar nas peças e despeje a quantidade indicada no manual. Por fim, use a vareta para conferir o nível antes de fechar a tampa.
+                    """,
+                    image: .asset(
+                        name: "change_oil",
+                        fallback: "drop.fill"
+                    ),
+                    warningMessage: "Aviso: Lubrifique a borracha do filtro novo com um pouco de óleo e aperte-o apenas com a força das mãos.",
+                    warningTitle: "Risco de danos ao automóvel"
                 )
             ]
         )

@@ -74,7 +74,7 @@ struct AddCustomTaskView: View {
 
             Section("Lembrete") {
                 DatePicker("Alarme", selection: $alarmDate, displayedComponents: [.date, .hourAndMinute])
-
+                    .environment(\.locale, Locale(identifier: "pt_BR"))
                 Picker("Frequência", selection: $frequency) {
                     ForEach(ReminderRepeat.allCases) { option in
                         Text(option.title).tag(option)

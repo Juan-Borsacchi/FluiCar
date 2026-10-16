@@ -7,11 +7,17 @@
 
 import SwiftUI
 
+enum TutorialPhase: Hashable {
+    case intro
+    case step(Int)
+}
+
 struct TutorialView: View {
     @State private var viewModel = TutorialViewModel()
     @Environment(CoordinatorCore.self) private var coordinator
     
     let taskType: TaskType
+    let phase: TutorialPhase
     
     var body: some View {
         ZStack {
@@ -20,32 +26,20 @@ struct TutorialView: View {
             
             tutorialContent
         }
+        .toolbar(.hidden, for: .tabBar)
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text(viewModel.tutorial?.title ?? taskType.displayTitle)
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(.primary)
             }
-            
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    if viewModel.currentPhase > 0 {
-                        viewModel.goBack()
-                    } else {
-                        coordinator.pop()
-                    }
-                } label: {
-                    Image(systemName: "chevron.left")
-                }
-            }
         }
         .alert(
-            "Atenção: risco de manutenção",
+            "\(viewModel.warningTitle)",
             isPresented: $viewModel.showWarning
         ) {
-            Button("Li e entendi", role: .cancel) {
+            Button("Li e Estou de Acordo", role: .cancel) {
                 viewModel.confirmWarning()
             }
         } message: {
@@ -53,63 +47,84 @@ struct TutorialView: View {
         }
         .onChange(of: viewModel.showWarning) { _, isPresented in
             guard isPresented else { return }
-
+            
             HapticManager.shared.warning()
         }
         .task {
             _ = HapticManager.shared
-            viewModel.prepareTutorial(for: taskType)
-        }
-        .onChange(of: viewModel.didFinish) { _, didFinish in
-            if didFinish {
-                coordinator.pop()
-            }
+            viewModel.prepareTutorial(for: taskType, phase: phase)
         }
     }
     
     @ViewBuilder
     private var tutorialContent: some View {
         if let tutorial = viewModel.tutorial {
-            VStack {
-                if viewModel.currentPhase == 0 {
-                    TutorialIntroView(tutorial: tutorial) {
-                        viewModel.handlePrimaryAction()
+            switch phase {
+            case .intro:
+                TutorialIntroView(tutorial: tutorial) {
+                    coordinator.push(.tutorialStep(taskType, 0))
+                }
+                
+            case .step(let stepIndex):
+                if tutorial.steps.indices.contains(stepIndex) {
+                    TutorialStepView(
+                        step: tutorial.steps[stepIndex],
+                        totalSteps: tutorial.steps.count,
+                        currentIndex: stepIndex
+                    ) {
+                        advance(
+                            from: stepIndex,
+                            totalSteps: tutorial.steps.count
+                        )
                     }
-                    .transition(.opacity)
                 } else {
-                    let stepIndex = viewModel.currentPhase - 1
-                    
-                    if stepIndex < tutorial.steps.count {
-                        TutorialStepView(
-                            step: tutorial.steps[stepIndex],
-                            totalSteps: tutorial.steps.count,
-                            currentIndex: stepIndex
-                        ) {
-                            viewModel.handlePrimaryAction()
-                        }
-                    }
+                    ContentUnavailableView(
+                        "Etapa inválida",
+                        systemImage: "exclamationmark.triangle"
+                    )
                 }
             }
-            .animation(
-                .easeInOut(duration: 0.4),
-                value: viewModel.currentPhase
-            )
         } else {
             ProgressView("Carregando...")
         }
+    }
+    
+    private func advance(
+        from stepIndex: Int,
+        totalSteps: Int
+    ) {
+        let nextIndex = stepIndex + 1
+        
+        if nextIndex < totalSteps {
+            coordinator.push(
+                .tutorialStep(taskType, nextIndex)
+            )
+        } else {
+            finishTutorial(from: stepIndex)
+        }
+    }
+    
+    private func finishTutorial(from stepIndex: Int) {
+        coordinator.pop(count: stepIndex + 2)
     }
 }
 
 #Preview("Troca de Óleo") {
     NavigationStack {
-        TutorialView(taskType: .oilChange)
-            .environment(CoordinatorCore())
+        TutorialView(
+            taskType: .oilChange,
+            phase: .intro
+        )
+        .environment(CoordinatorCore())
     }
 }
 
 #Preview("Bateria") {
     NavigationStack {
-        TutorialView(taskType: .batteryCheck)
-            .environment(CoordinatorCore())
+        TutorialView(
+            taskType: .batteryCheck,
+            phase: .intro
+        )
+        .environment(CoordinatorCore())
     }
 }

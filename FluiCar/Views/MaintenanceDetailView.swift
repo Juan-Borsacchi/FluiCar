@@ -185,7 +185,7 @@ struct MaintenanceDetailView: View {
                 viewModel.completeTask()
             }
         } label: {
-            Text(viewModel.isCustom ? "Concluir tarefa" : "Tarefa concluída")
+            Text("Concluir tarefa")
                 .font(.headline)
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
@@ -229,12 +229,14 @@ private struct EditMaintenanceSheet: View {
                     selection: $viewModel.draftLastCheck,
                     displayedComponents: .date
                 )
+                .environment(\.locale, Locale(identifier: "pt_BR"))
 
                 DatePicker(
                     "Próxima checagem",
                     selection: $viewModel.draftNextCheck,
                     displayedComponents: .date
                 )
+                .environment(\.locale, Locale(identifier: "pt_BR"))
             }
         }
         .navigationTitle("Editar \(viewModel.title)")

@@ -76,9 +76,9 @@ struct AutomaticTasksHintOverlay: View {
             }
             .shadow(color: .black.opacity(0.8), radius: 4, x: 0, y: 2)
             
-            .padding(.trailing, isPadOrLandscape ? 24 : 80)
+            .padding(.trailing, isPadOrLandscape ? 95 : 80)
             
-            .padding(.top, isPadOrLandscape ?  100 : 95)
+            .padding(.top, isPadOrLandscape ?  70 : 95)
             
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
         }

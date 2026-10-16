@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Observation
+import OSLog
 
 @MainActor
 @Observable
@@ -54,7 +55,7 @@ class VehicleViewModel {
                 loadPhoto()
             }
         } catch {
-            print("Error on fetch informations of vehicle: \(error)")
+            Logger.database.error("Error on fetch informations of vehicle: \(error)")
         }
     }
 
@@ -62,7 +63,7 @@ class VehicleViewModel {
         do {
             try await dataBase.delete(car)
         } catch {
-            print("Error on delete vehicle: \(error)")
+            Logger.database.error("Error on delete vehicle: \(error)")
         }
     }
 
@@ -70,7 +71,7 @@ class VehicleViewModel {
         do {
             try await dataBase.update(car)
         } catch {
-            print("Error on update vehicle kilometers: \(error)")
+            Logger.database.error("Error on update vehicle kilometers: \(error)")
         }
     }
 
