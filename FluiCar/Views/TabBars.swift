@@ -114,17 +114,16 @@ struct TabBarsView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Spacer()
-                if let appIcon = Bundle.main.appIcon {
-                    Image(uiImage: appIcon)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 124, height: 124)
-                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                        .shadow(
-                            color: colorScheme == .dark ? .white.opacity(0.12) : .black.opacity(0.10),
-                            radius: 15, x: 5, y: 10
-                        )
-                }
+                Image("LogoFluiCar")
+                    .resizable()
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 124, height: 124)
+                    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    .shadow(
+                        color: colorScheme == .dark ? .white.opacity(0.12) : .black.opacity(0.10),
+                        radius: 15, x: 5, y: 10
+                    )
                 Spacer()
             }
             .padding(.top, 40)
@@ -221,21 +220,7 @@ struct TabBarsView: View {
     }
 }
 
-extension Bundle {
-    var appIcon: UIImage? {
-        if let icons = infoDictionary?["CFBundleIcons"] as? [String: Any],
-           let primaryIcon = icons["CFBundlePrimaryIcon"] as? [String: Any],
-           let iconFiles = primaryIcon["CFBundleIconFiles"] as? [String],
-           let lastIcon = iconFiles.last {
-            return UIImage(named: lastIcon)
-        }
-        return nil
-    }
-}
-
-
 #Preview {
     TabBarsView()
         .environment(CoordinatorCore())
 }
-
