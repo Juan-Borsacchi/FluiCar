@@ -141,45 +141,48 @@ struct TabBarsView: View {
             .padding(.horizontal, 54)
             .padding(.bottom, 32)
 
-            VStack(alignment: .leading, spacing: 24) {
-                onboardingItem(
-                    icon: "car.fill",
-                    title: "Cuide dos seus automóveis",
-                    description: "Tenha as informações essenciais do seu automóvel sempre à mão."
-                )
-
-                onboardingItem(
-                    icon: "wrench.and.screwdriver.fill",
-                    title: "Controle suas manutenções",
-                    description: "Receba lembretes automáticos de prazos e manutenções."
-                )
-
-                onboardingItem(
-                    icon: "inset.filled.topthird.middlethird.bottomthird.rectangle",
-                    title: "Veja soluções de problemas",
-                    description: "Tutoriais para garantir mais autonomia."
-                )
+            ScrollView{
+                VStack(alignment: .leading, spacing: 24) {
+                    onboardingItem(
+                        icon: "car.fill",
+                        title: "Cuide dos seus automóveis",
+                        description: "Tenha as informações essenciais do seu automóvel sempre à mão."
+                    )
+                    
+                    onboardingItem(
+                        icon: "wrench.and.screwdriver.fill",
+                        title: "Controle suas manutenções",
+                        description: "Receba lembretes automáticos de prazos e manutenções."
+                    )
+                    
+                    onboardingItem(
+                        icon: "inset.filled.topthird.middlethird.bottomthird.rectangle",
+                        title: "Veja soluções de problemas",
+                        description: "Tutoriais para garantir mais autonomia."
+                    )
+                }
+                .padding(.horizontal, 48)
+                
+                Spacer()
+                
+                Text("Tocar em **continuar** implica que você leu e aceitou \n nossos [Termos de Uso](fluicar://term) e a nossa [Política de Privacidade](fluicar://privacy)")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .tint(.blue)
+                    .multilineTextAlignment(.leading)
+                    .padding(.horizontal, 32)
+                    .environment(\.openURL, OpenURLAction { url in
+                        if url.absoluteString == "fluicar://term" {
+                            documentToPresent = .term
+                            return .handled
+                        } else if url.absoluteString == "fluicar://privacy" {
+                            documentToPresent = .privacy
+                            return .handled
+                        }
+                        return .discarded
+                    })
             }
-            .padding(.horizontal, 48)
-
-            Spacer()
-            
-            Text("Tocar em **continuar** implica que você leu e aceitou \n nossos [Termos de Uso](fluicar://term) e a nossa [Política de Privacidade](fluicar://privacy)")
-                .font(.footnote)
-                .foregroundColor(.secondary)
-                .tint(.blue)
-                .multilineTextAlignment(.leading)
-                .padding(.horizontal, 32)
-                .environment(\.openURL, OpenURLAction { url in
-                    if url.absoluteString == "fluicar://term" {
-                        documentToPresent = .term
-                        return .handled
-                    } else if url.absoluteString == "fluicar://privacy" {
-                        documentToPresent = .privacy
-                        return .handled
-                    }
-                    return .discarded
-                })
+            .frame(minHeight: 100)
             
             Spacer()
 
@@ -214,7 +217,9 @@ struct TabBarsView: View {
                 Text(description)
                     .font(.system(size: 17))
                     .foregroundColor(.secondary)
+                
             }
+            .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, 20)
         }
     }
