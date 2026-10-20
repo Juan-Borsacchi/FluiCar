@@ -21,10 +21,9 @@ struct TutorialView: View {
     
     var body: some View {
         ZStack {
-            Color("Background")
-                .ignoresSafeArea()
-            
-            tutorialContent
+                Color("Background")
+                    .ignoresSafeArea()
+                tutorialContent
         }
         .toolbar(.hidden, for: .tabBar)
         .navigationBarTitleDisplayMode(.inline)
@@ -33,6 +32,7 @@ struct TutorialView: View {
                 Text(viewModel.tutorial?.title ?? taskType.displayTitle)
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .alert(

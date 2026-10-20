@@ -16,9 +16,9 @@ struct VehicleView: View {
     @Environment(CoordinatorCore.self) private var coordinator
     
     var body: some View {
-
-//            Color("Background")
-//                .ignoresSafeArea()
+        ZStack{
+            Color("Background")
+                .ignoresSafeArea()
             
             ScrollView {
                 VStack(spacing: 24) {
@@ -28,7 +28,7 @@ struct VehicleView: View {
                 .padding(.top, 24)
                 .padding(.bottom, 40)
             }
-        
+        }
         .toolbar(.hidden, for: .tabBar)
         .task {
             await viewModel.fetchInformations()
@@ -42,6 +42,7 @@ struct VehicleView: View {
                 }
             }
         }
+        
         .navigationTitle(viewModel.car.name)
         .navigationBarTitleDisplayMode(.inline)
   
